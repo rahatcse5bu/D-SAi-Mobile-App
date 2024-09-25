@@ -32,10 +32,15 @@ class _EmployeeDashboardState extends State<EmployeeDashboard> {
   bool _isLoading = true;
   String _filterCompanyName = '';
   DateTimeRange? _selectedDateRange;
-
+double _opacity = 0.0;
   @override
   void initState() {
     super.initState();
+        Future.delayed(Duration(milliseconds: 500), () {
+      setState(() {
+        _opacity = 1.0; // Fade in after 500ms
+      });
+    });
     _fetchWorkHistory();
   }
 
@@ -198,104 +203,108 @@ class _EmployeeDashboardState extends State<EmployeeDashboard> {
 child: Scaffold(
       appBar: DSAiAppBar(),
       drawer: DSAiDrawer(),
-      body: Column(
-        children: [
-          SizedBox(
-            height: 10,
-          ),
-          EmployeeCard(
-            employeeName: widget.employeeName,
-            position: widget.position,
-            employeeId: widget.employeeId,
-          ),
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                // Company Name Search Field
-                Expanded(
-                  flex: 3,
-                  child: TextField(
-                    decoration: InputDecoration(
-                      prefixIcon: Icon(Icons.search),
-                      labelText: "Search by Company Name",
-                      border: OutlineInputBorder(
-                        borderSide: BorderSide(
-                          color: const Color.fromARGB(31, 252, 252, 252),
-                          width: 20,
-                        ),
-                        borderRadius: BorderRadius.circular(50),
-                      ),
-                    ),
-                    onChanged: (value) {
-                      setState(() {
-                        _filterCompanyName = value;
-                      });
-                      _applyFilters();
-                    },
-                  ),
-                ),
-                const SizedBox(width: 5),
-
-                // Filter Icon
-                ElevatedButton.icon(
-                  onPressed: _pickDateRange,
-                  icon: const Icon(
-                    Icons.filter_list,
-                    color: Colors.white,
-                  ),
-                  label: const Text(
-                    "Filter",
-                    style: TextStyle(color: Colors.white),
-                  ),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF00B884),
-                  ),
-                ),
-              ],
+      body: AnimatedOpacity( 
+        opacity: _opacity,
+        duration: const Duration(milliseconds: 500),
+        child: Column(
+          children: [
+            SizedBox(
+              height: 10,
             ),
-          ),
-          const SizedBox(height: 10),
-
-          // Table with filtered data
-          Expanded(
-            child: _isLoading
-                ? const Center(
-                    child: CircularProgressIndicator(
-                      color: Color(0xFF00B884),
-                    ),
-                  )
-                : SingleChildScrollView(
-                    scrollDirection: Axis.vertical,
-                    child: SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: Table(
-                        defaultColumnWidth:
-                            IntrinsicColumnWidth(), // Dynamic width
-                        border: TableBorder.all(
-                            color: const Color.fromARGB(255, 236, 236, 236)),
-                        children: [
-                          _buildTableHeader(), // The table header
-                          ..._filteredWorkHistory.map((work) {
-                            return TableRow(
-                              children: [
-                                _buildTableCell(formatDate(work['date'])),
-                                _buildTableCell(formatTime(work['checkedIn'])),
-                                _buildTableCell(formatTime(work['checkedOut'])),
-                                _buildTableCell(work['breakTime'] ?? 'N/A'),
-                                _buildTableCell(work['totalTime'] ?? 'N/A'),
-                                _buildTableCell(work['address'] ?? 'N/A'),
-                              ],
-                            );
-                          }).toList(),
-                        ],
+            EmployeeCard(
+              employeeName: widget.employeeName,
+              position: widget.position,
+              employeeId: widget.employeeId,
+            ),
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  // Company Name Search Field
+                  Expanded(
+                    flex: 3,
+                    child: TextField(
+                      decoration: InputDecoration(
+                        prefixIcon: Icon(Icons.search),
+                        labelText: "Search by Company Name",
+                        border: OutlineInputBorder(
+                          borderSide: BorderSide(
+                            color: const Color.fromARGB(31, 252, 252, 252),
+                            width: 20,
+                          ),
+                          borderRadius: BorderRadius.circular(50),
+                        ),
                       ),
+                      onChanged: (value) {
+                        setState(() {
+                          _filterCompanyName = value;
+                        });
+                        _applyFilters();
+                      },
                     ),
                   ),
-          ),
-          // DSAiFooter(),
-        ],
+                  const SizedBox(width: 5),
+        
+                  // Filter Icon
+                  ElevatedButton.icon(
+                    onPressed: _pickDateRange,
+                    icon: const Icon(
+                      Icons.filter_list,
+                      color: Colors.white,
+                    ),
+                    label: const Text(
+                      "Filter",
+                      style: TextStyle(color: Colors.white),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF00B884),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 10),
+        
+            // Table with filtered data
+            Expanded(
+              child: _isLoading
+                  ? const Center(
+                      child: CircularProgressIndicator(
+                        color: Color(0xFF00B884),
+                      ),
+                    )
+                  : SingleChildScrollView(
+                      scrollDirection: Axis.vertical,
+                      child: SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Table(
+                          defaultColumnWidth:
+                              IntrinsicColumnWidth(), // Dynamic width
+                          border: TableBorder.all(
+                              color: const Color.fromARGB(255, 236, 236, 236)),
+                          children: [
+                            _buildTableHeader(), // The table header
+                            ..._filteredWorkHistory.map((work) {
+                              return TableRow(
+                                children: [
+                                  _buildTableCell(formatDate(work['date'])),
+                                  _buildTableCell(formatTime(work['checkedIn'])),
+                                  _buildTableCell(formatTime(work['checkedOut'])),
+                                  _buildTableCell(work['breakTime'] ?? 'N/A'),
+                                  _buildTableCell(work['totalTime'] ?? 'N/A'),
+                                  _buildTableCell(work['address'] ?? 'N/A'),
+                                ],
+                              );
+                            }).toList(),
+                          ],
+                        ),
+                      ),
+                    ),
+            ),
+            // DSAiFooter(),
+          ],
+        ),
       ),
     ));
   }

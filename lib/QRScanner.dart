@@ -20,39 +20,44 @@ class QRScannerPage extends StatefulWidget {
 class _QRScannerPageState extends State<QRScannerPage> {
   bool isLoading = false;
   bool isAccessed = false;
+  bool _scanningFinished = false; // To ensure QR scanner doesn't restart
   List<String> validIds = []; // List to store valid IDs from API response
+  double _opacity = 0.0;
 
   @override
   void initState() {
     super.initState();
+    Future.delayed(Duration(milliseconds: 500), () {
+      setState(() {
+        _opacity = 1.0; // Fade in after 500ms
+      });
+    });
     _loadCheckInStatusAndRedirect();
-    // _fetchValidIds(); // Fetch valid IDs from the API on load
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      // Start the QR scanner after the first frame completes
-      _startQRScanner();
+      if (!_scanningFinished) {
+        // Start the QR scanner after the first frame completes
+        _startQRScanner();
+      }
     });
   }
 
   @override
   void dispose() {
-    // Dispose any controllers if needed
     super.dispose();
   }
 
   Future<void> _loadCheckInStatusAndRedirect() async {
     final prefs = await SharedPreferences.getInstance();
     final isCheckedIn = prefs.getBool('isCheckedIn') ?? false;
-
-    final checkInTimeStr = prefs.getString('checkInTime');
-    final accessKey = prefs.getString('accessKey');
+    final accessKey = prefs.getString('accessKey') ?? '';
 
     if (isCheckedIn == true && accessKey != null) {
       Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-              builder: (context) => UserDashboard(
-                    accessId: accessKey!,
-                  )));
+        context,
+        MaterialPageRoute(
+          builder: (context) => UserDashboard(accessId: accessKey!),
+        ),
+      );
     }
   }
 
@@ -67,65 +72,32 @@ class _QRScannerPageState extends State<QRScannerPage> {
         final data = json.decode(response.body);
         if (data['success'] == true) {
           setState(() {
-            isAccessed = data['success']
-                as bool; // Return the value of "data" field, which is a boolean
+            isAccessed = data['data'] as bool; // Access validation
           });
         } else {
           setState(() {
-            isAccessed =
-                false; // Return the value of "data" field, which is a boolean
+            isAccessed = false;
           });
         }
       } else {
-        // Handle non-200 responses here
+        setState(() {
+          isAccessed = false;
+        });
         throw Exception(
             'Failed to check access key. Status code: ${response.statusCode}');
       }
     } catch (e) {
-      // Handle any errors that occur during the HTTP request
       print('Error occurred while checking access key: $e');
       setState(() {
-        isAccessed = false; // Return false
+        isAccessed = false;
       });
     }
   }
 
-  // Function to fetch valid IDs from the API
-  // Future<void> _fetchValidIds() async {
-  //   const String apiUrl =
-  //       'https://dsaiqrbackend.vercel.app/api/v1/access-links/access-ids';
-  //   try {
-  //     debugPrint("Fetching data from API...");
-  //     final response = await http.get(Uri.parse(apiUrl));
-  //     debugPrint("API response received: ${response.statusCode}");
-
-  //     if (response.statusCode == 200) {
-  //       final data = jsonDecode(response.body);
-  //       debugPrint("Parsed data: $data");
-
-  //       if (data['success'] == true) {
-  //         // Extract IDs from the response
-  //         validIds = (data['data'] as List)
-  //             .map((item) => item['ID'].toString())
-  //             .toList();
-  //         debugPrint('Fetched valid IDs: $validIds');
-  //       } else {
-  //         _safeShowErrorDialog('Failed to fetch valid IDs from the server.');
-  //       }
-  //     } else {
-  //       _safeShowErrorDialog('Failed to connect to the server.');
-  //     }
-  //   } catch (e) {
-  //     debugPrint("Error caught: $e");
-  //     _safeShowErrorDialog('Error fetching data: $e');
-  //   }
-  // }
-
-  // Function to start QR scanning automatically
   void _startQRScanner() async {
-    if (!mounted) return; // Ensure the widget is still mounted
+    if (!mounted || _scanningFinished) return;
     setState(() {
-      isLoading = true; // Show loading indicator
+      isLoading = true;
     });
 
     try {
@@ -151,8 +123,6 @@ class _QRScannerPageState extends State<QRScannerPage> {
                 ),
               );
             },
-            // hideGalleryButton: true,
-            // hideGalleryIcon: true,
             appBarBuilder: (context, controller) {
               return DSAiAppBar();
             },
@@ -161,19 +131,23 @@ class _QRScannerPageState extends State<QRScannerPage> {
             ),
             onDetect: (BarcodeCapture capture) async {
               try {
-                final String? scannedValue = capture.barcodes.first.rawValue;
-                debugPrint("QR Code scanned: $scannedValue");
+                // Check if barcodes list is not empty before accessing it
+                if (capture.barcodes.isNotEmpty) {
+                  final String? scannedValue = capture.barcodes.first.rawValue;
+                  debugPrint("QR Code scanned: $scannedValue");
 
-                if (scannedValue != null) {
-                  Navigator.of(context)
-                      .pop(scannedValue); // Pass the scanned value back
-                  WidgetsBinding.instance.addPostFrameCallback((_) {
-                    // Handle the scanned result after pop completes
-                    _handleScannedResult(scannedValue);
-                  });
+                  if (scannedValue != null) {
+                    Navigator.of(context).pop(scannedValue); // Pass scanned value
+                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                      _handleScannedResult(scannedValue);
+                    });
+                  } else {
+                    debugPrint("No scanned value found.");
+                    _safeShowErrorDialog("No QR code detected.");
+                  }
                 } else {
-                  debugPrint("No scanned value found.");
-                  _safeShowErrorDialog("No QR code detected.");
+                  debugPrint("Barcode list is empty.");
+                  _safeShowErrorDialog("No barcodes detected.");
                 }
               } catch (e) {
                 debugPrint("Error in onDetect: $e");
@@ -184,12 +158,8 @@ class _QRScannerPageState extends State<QRScannerPage> {
         ),
       );
 
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        setState(() {
-          isLoading = false; // Hide loading indicator
-        });
-        // Start the QR scanner after the first frame completes
-        _startQRScanner();
+      setState(() {
+        isLoading = false;
       });
 
       if (result == null) {
@@ -201,144 +171,125 @@ class _QRScannerPageState extends State<QRScannerPage> {
     }
   }
 
-  // New method to handle the scanned result and perform further navigation
   Future<void> _handleScannedResult(String result) async {
+    if (_scanningFinished) return; // Ensure this only runs once
+    setState(() {
+      _scanningFinished = true;
+    });
+
     debugPrint("Handling scanned result: $result");
 
     if (result.isNotEmpty) {
-      final keyId =
-          _extractKeyIdFromUrl(result); // Extract the key ID from the URL
+      final keyId = _extractKeyIdFromUrl(result);
+      final companyName = _extractCompanyNameFromUrl(result);
       debugPrint("Extracted key ID: $keyId");
+      debugPrint("Extracted company name: $companyName");
 
-      // Normalize IDs: trim whitespace and convert to lowercase for consistent matching
-      final normalizedKeyId = keyId?.trim().toLowerCase();
-      final normalizedValidIds =
-          validIds.map((id) => id.trim().toLowerCase()).toList();
-
-      debugPrint("Normalized Key ID: $normalizedKeyId");
-      debugPrint("Normalized Valid IDs: $normalizedValidIds");
-      await checkAccessKey(normalizedKeyId!);
-      if (normalizedKeyId != null && isAccessed) {
-        // If the key ID matches an ID from the API response
-        final extractedText = _extractTextAfterQRCode(result);
-        debugPrint(
-            "Navigating to WebView with URL: $result and Title: $extractedText");
-
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          // Ensure navigator is not locked
-          if (mounted) {
-            Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (context) => Login(
-                  accessKey: normalizedKeyId,
-                  company: extractedText,
-                ),
+      if (keyId != null && companyName != null) {
+        await checkAccessKey(keyId);
+        if (keyId.isNotEmpty && isAccessed) {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(
+              builder: (context) => Login(
+                accessKey: keyId,
+                company: companyName,
               ),
-            );
-          }
-        });
+            ),
+          );
+        } else {
+          _safeShowErrorDialog("The scanned QR code does not belong to D-SAi.");
+        }
       } else {
-        debugPrint("Scanned QR code does not match any valid IDs.");
-        // Show error dialog with the comparable IDs
-        // _safeShowErrorDialog(
-        //     'The scanned QR code does not belong to D-SAi.\n\n'
-        //     'Extracted Key ID: $normalizedKeyId\n\n'
-        //     'Valid IDs: ${normalizedValidIds.join(", ")}');
-        _safeShowErrorDialog('The scanned QR code does not belong to D-SAi.\n\n'
-            'Extracted Key ID: $normalizedKeyId');
+        _safeShowErrorDialog(
+            "The scanned QR code does not belong to D-SAi. KeyID: $keyId, Company Name: $companyName, isAccessed: $isAccessed");
       }
     } else {
-      debugPrint("No result or result is not a string.");
-      _safeShowErrorDialog("Invalid QR code result.");
+      _safeShowErrorDialog("No valid QR code result.");
     }
   }
 
-  // Function to extract the key ID from the QR code URL
+  String? _extractCompanyNameFromUrl(String url) {
+    try {
+      final uri = Uri.parse(url);
+      final segments = uri.pathSegments;
+      if (segments.isNotEmpty && segments.length >= 4) {
+        return segments[2]; // Assuming the company name is the 3rd segment (index 2)
+      }
+    } catch (e) {
+      debugPrint("Error parsing URL for company name: $e");
+    }
+    return null;
+  }
+
   String? _extractKeyIdFromUrl(String url) {
     try {
       final uri = Uri.parse(url);
       final segments = uri.pathSegments;
       if (segments.isNotEmpty) {
-        return segments.last; // Assuming the key ID is always the last segment
+        return segments.last; // Assuming the key ID is the last segment
       }
     } catch (e) {
-      debugPrint("Error parsing URL: $e");
+      debugPrint("Error parsing URL for key ID: $e");
     }
     return null;
   }
 
-  // Function to extract the text after /qr-code/ from the scanned URL
-  String _extractTextAfterQRCode(String url) {
-    try {
-      final uri = Uri.parse(url);
-      final segments = uri.pathSegments;
-      final qrIndex = segments.indexOf('login');
-      if (qrIndex != -1 && qrIndex + 1 < segments.length) {
-        return segments[qrIndex + 1]; // Extract the text after /qr-code/
-      }
-    } catch (e) {
-      debugPrint("Error extracting text from URL: $e");
-    }
-    return 'Unknown';
-  }
-
-  // Safe function to show an error dialog with context check
   void _safeShowErrorDialog(String message) {
-    if (!mounted) return; // Ensure the widget is still mounted
-    debugPrint("Showing error dialog: $message");
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      // Add a delay to ensure navigator is not locked
-      showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: const Text('Error'),
-          content: SingleChildScrollView(
-            // Added to handle potentially long messages
-            child: Text(message),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-                WidgetsBinding.instance.addPostFrameCallback((_) {
-                  // Start the QR scanner after the first frame completes
-                  _startQRScanner();
-                });
-              },
-              child: const Text('OK'),
-            ),
-          ],
+    if (!mounted) return;
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Error'),
+        content: SingleChildScrollView(
+          child: Text(message),
         ),
-      );
-    });
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              Navigator.pushAndRemoveUntil(
+                context,
+                MaterialPageRoute(builder: (context) => HomePage()),
+                (Route<dynamic> route) => false,
+              );
+            },
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return PopScope(
-        canPop: true,
-        onPopInvokedWithResult: (didPop, result) {
-          // Pop all routes and navigate to HomePage
-          Navigator.pushAndRemoveUntil(
-            context,
-            MaterialPageRoute(builder: (context) => HomePage()),
-            (Route<dynamic> route) => false, // Remove all routes
-          );
-          // return result.; // Indicate that the pop is handled
-        },
-        child: Scaffold(
-          appBar: DSAiAppBar(),
-          drawer: DSAiDrawer(),
-          resizeToAvoidBottomInset:
-              true, // Ensures the layout adapts to the keyboard
-          body: Center(
+      canPop: true,
+      onPopInvokedWithResult: (didPop, result) {
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (context) => HomePage()),
+          (Route<dynamic> route) => false,
+        );
+      },
+      child: Scaffold(
+        appBar: DSAiAppBar(),
+        drawer: DSAiDrawer(),
+        resizeToAvoidBottomInset: true,
+        body: AnimatedOpacity(
+          opacity: _opacity,
+          duration: const Duration(milliseconds: 500),
+          child: Center(
             child: isLoading
-                ? const CircularProgressIndicator() // Show loading indicator while scanning
+                ? const CircularProgressIndicator()
                 : const Text(
                     'Scanning QR Code...',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                        fontSize: 18, fontWeight: FontWeight.bold),
                   ),
           ),
-        ));
+        ),
+      ),
+    );
   }
 }

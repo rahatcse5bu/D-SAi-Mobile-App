@@ -35,10 +35,15 @@ class _SignUpPageState extends State<SignUpPage>
   final TextEditingController emailController = TextEditingController();
   final TextEditingController phoneNumberController = TextEditingController();
   final TextEditingController bankDetailsController = TextEditingController();
-
+double _opacity = 0.0;
   @override
   void initState() {
     super.initState();
+        Future.delayed(Duration(milliseconds: 500), () {
+      setState(() {
+        _opacity = 1.0; // Fade in after 500ms
+      });
+    });
     _tabController = TabController(length: 2, vsync: this);
   }
 
@@ -97,8 +102,8 @@ class _SignUpPageState extends State<SignUpPage>
       }
     } catch (e) {
       setState(() {
-  isLoading = false;
-});
+        isLoading = false;
+      });
       Fluttertoast.showToast(
         msg: "Error: $e",
         toastLength: Toast.LENGTH_SHORT,
@@ -119,9 +124,9 @@ class _SignUpPageState extends State<SignUpPage>
       'number': phoneNumberController.text,
       'bankDetails': bankDetailsController.text,
     };
-setState(() {
-  isLoading = true;
-});
+    setState(() {
+      isLoading = true;
+    });
     try {
       final response = await http.post(url,
           headers: {'Content-Type': 'application/json'},
@@ -136,8 +141,8 @@ setState(() {
           textColor: Colors.white,
         );
         setState(() {
-  isLoading = false;
-});
+          isLoading = false;
+        });
         _clearEmployeeForm();
       } else {
         Fluttertoast.showToast(
@@ -148,8 +153,8 @@ setState(() {
           textColor: Colors.white,
         );
         setState(() {
-  isLoading = false;
-});
+          isLoading = false;
+        });
       }
     } catch (e) {
       Fluttertoast.showToast(
@@ -160,8 +165,8 @@ setState(() {
         textColor: Colors.white,
       );
       setState(() {
-  isLoading = false;
-});
+        isLoading = false;
+      });
     }
   }
 
@@ -190,83 +195,89 @@ setState(() {
     final double tabWidth = screenWidth / 2;
 
     return PopScope(
-  canPop: false,
-  onPopInvokedWithResult  : (didPop, result) {
-     // Pop all routes and navigate to HomePage
-        Navigator.pushAndRemoveUntil(
-          context,
-          MaterialPageRoute(builder: (context) => HomePage()),
-          (Route<dynamic> route) => false, // Remove all routes
-        );
-        // return result.; // Indicate that the pop is handled
-  } ,
-child: Scaffold(
-      appBar: DSAiAppBar(title: "D-SAi: Registration"),
-      drawer: DSAiDrawer(),
-      body: Column(
-        children: [
-          Container(
-            margin: const EdgeInsets.all(16.0),
-            // padding: EdgeInsets.symmetric(vertical: 10,horizontal: 8),
-            height: 50,
-            decoration: BoxDecoration(
-              color: Colors.grey.shade200,
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: TweenAnimationBuilder(
-              duration: const Duration(milliseconds: 1200),
-              curve: Curves.easeOutExpo,
-              tween: Tween<double>(begin: 0, end: 1),
-              builder: (BuildContext context, double opacity, Widget? child) {
-                return TabBar(
-                  controller: _tabController,
-                  indicator: BoxDecoration(
-                    borderRadius: BorderRadius.circular(10),
-                    color: const Color(0xFF00B884),
-                  ),
-                  labelColor: Colors.white,
-                  unselectedLabelColor: Colors.black,
-                  indicatorSize: TabBarIndicatorSize.tab,
-                  labelStyle: const TextStyle(
-                      fontSize: 16, fontWeight: FontWeight.bold),
-                  unselectedLabelStyle: const TextStyle(fontSize: 16),
-                  physics: const BouncingScrollPhysics(), // Smoothens the swipe
-                  tabs: [
-                    Tab(
-                      child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 1200),
-                        curve: Curves.easeOutExpo,
-                        width: tabWidth,
-                        alignment: Alignment.center,
-                        child: const Text('Client'),
-                      ),
-                    ),
-                    Tab(
-                      child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 1200),
-                        curve: Curves.easeOutExpo,
-                        width: tabWidth,
-                        alignment: Alignment.center,
-                        child: const Text('Employee'),
-                      ),
-                    ),
-                  ],
-                );
-              },
-            ),
-          ),
-          Expanded(
-            child: TabBarView(
-              controller: _tabController,
+        canPop: false,
+        onPopInvokedWithResult: (didPop, result) {
+          // Pop all routes and navigate to HomePage
+          Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(builder: (context) => HomePage()),
+            (Route<dynamic> route) => false, // Remove all routes
+          );
+          // return result.; // Indicate that the pop is handled
+        },
+        child: Scaffold(
+          appBar: DSAiAppBar(title: "D-SAi: Registration"),
+          drawer: DSAiDrawer(),
+          body: AnimatedOpacity(
+            opacity: _opacity,
+            duration: Duration(milliseconds: 500),
+            child: Column(
               children: [
-                _buildClientSignUp(),
-                _buildEmployeeSignUp(),
+                Container(
+                  margin: const EdgeInsets.all(16.0),
+                  // padding: EdgeInsets.symmetric(vertical: 10,horizontal: 8),
+                  height: 50,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade200,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: TweenAnimationBuilder(
+                    duration: const Duration(milliseconds: 1200),
+                    curve: Curves.easeOutExpo,
+                    tween: Tween<double>(begin: 0, end: 1),
+                    builder:
+                        (BuildContext context, double opacity, Widget? child) {
+                      return TabBar(
+                        controller: _tabController,
+                        indicator: BoxDecoration(
+                          borderRadius: BorderRadius.circular(10),
+                          color: const Color(0xFF00B884),
+                        ),
+                        labelColor: Colors.white,
+                        unselectedLabelColor: Colors.black,
+                        indicatorSize: TabBarIndicatorSize.tab,
+                        labelStyle: const TextStyle(
+                            fontSize: 16, fontWeight: FontWeight.bold),
+                        unselectedLabelStyle: const TextStyle(fontSize: 16),
+                        physics:
+                            const BouncingScrollPhysics(), // Smoothens the swipe
+                        tabs: [
+                          Tab(
+                            child: AnimatedContainer(
+                              duration: const Duration(milliseconds: 1200),
+                              curve: Curves.easeOutExpo,
+                              width: tabWidth,
+                              alignment: Alignment.center,
+                              child: const Text('Client'),
+                            ),
+                          ),
+                          Tab(
+                            child: AnimatedContainer(
+                              duration: const Duration(milliseconds: 1200),
+                              curve: Curves.easeOutExpo,
+                              width: tabWidth,
+                              alignment: Alignment.center,
+                              child: const Text('Employee'),
+                            ),
+                          ),
+                        ],
+                      );
+                    },
+                  ),
+                ),
+                Expanded(
+                  child: TabBarView(
+                    controller: _tabController,
+                    children: [
+                      _buildClientSignUp(),
+                      _buildEmployeeSignUp(),
+                    ],
+                  ),
+                ),
               ],
             ),
           ),
-        ],
-      ),
-    ));
+        ));
   }
 
   // Client Sign-Up Form
@@ -381,14 +392,19 @@ child: Scaffold(
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFF00B884),
               padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8)),
             ),
             child: Text(
               text,
               style: const TextStyle(fontSize: 16, color: Colors.white),
             ),
           ),
-          isLoading ? CircularProgressIndicator(color: Color(0xFF00B884),): Text("")
+          isLoading
+              ? CircularProgressIndicator(
+                  color: Color(0xFF00B884),
+                )
+              : Text("")
         ],
       ),
     );

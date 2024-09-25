@@ -27,10 +27,15 @@ class Login extends StatefulWidget {
 class _LoginState extends State<Login> {
   final TextEditingController _userIdController = TextEditingController();
   bool _isLoading = false; // State to show loading indicator
-
+  double _opacity = 0.0;
   @override
   void initState() {
     super.initState();
+    Future.delayed(Duration(milliseconds: 500), () {
+      setState(() {
+        _opacity = 1.0; // Fade in after 500ms
+      });
+    });
     _checkAndRequestLocationPermission(); // Request location permission when the screen loads
   }
 
@@ -115,7 +120,6 @@ class _LoginState extends State<Login> {
 
           // Determine whether it's a Client or Employee by checking if `cid` or `eid` exists
           if (user.containsKey('cid')) {
-            
             // Navigate to Client Dashboard if `cid` exists
             Navigator.pushReplacement(
               context,
@@ -136,7 +140,7 @@ class _LoginState extends State<Login> {
             );
           } else if (user.containsKey('eid')) {
             //store only employee data
-                  await prefs.setString('userData', json.encode(user));
+            await prefs.setString('userData', json.encode(user));
             // Navigate to Employee/User Dashboard if `eid` exists
             Navigator.pushReplacement(
               context,
@@ -237,158 +241,165 @@ class _LoginState extends State<Login> {
       SnackBar(content: Text(message)),
     );
   }
-   @override
+
+  @override
   Widget build(BuildContext context) {
     return PopScope(
-  canPop: false,
-  onPopInvokedWithResult  : (didPop, result) {
-     // Pop all routes and navigate to HomePage
-        Navigator.pushAndRemoveUntil(
-          context,
-          MaterialPageRoute(builder: (context) => HomePage()),
-          (Route<dynamic> route) => false, // Remove all routes
-        );
-        // return result.; // Indicate that the pop is handled
-  } ,
-child:  Scaffold(
-      appBar: DSAiAppBar(title: "D-SAi: ${widget.company}"),
-      drawer: DSAiDrawer(),
-      resizeToAvoidBottomInset: true, // Ensures the layout adapts to the keyboard
-      body: Stack(
-        children: [
-          SingleChildScrollView(
-            child: ConstrainedBox( // Ensure the height is constrained properly
-              constraints: BoxConstraints(
-                minHeight: MediaQuery.of(context).size.height,
-              ),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 50),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Center(
+        canPop: false,
+        onPopInvokedWithResult: (didPop, result) {
+          // Pop all routes and navigate to HomePage
+          Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(builder: (context) => HomePage()),
+            (Route<dynamic> route) => false, // Remove all routes
+          );
+          // return result.; // Indicate that the pop is handled
+        },
+        child: Scaffold(
+          appBar: DSAiAppBar(title: "D-SAi: ${widget.company}"),
+          drawer: DSAiDrawer(),
+          resizeToAvoidBottomInset:
+              true, // Ensures the layout adapts to the keyboard
+          body: AnimatedOpacity(
+            opacity: _opacity,
+            duration: const Duration(milliseconds: 500),
+            child: Stack(
+              children: [
+                SingleChildScrollView(
+                  child: ConstrainedBox(
+                    // Ensure the height is constrained properly
+                    constraints: BoxConstraints(
+                      minHeight: MediaQuery.of(context).size.height,
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 15, vertical: 50),
                       child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Image.asset('assets/logo.png'),
-                          const SizedBox(height: 20),
-                          const Text(
-                            "D-SAi QR CODE System",
-                            style: TextStyle(
-                              fontSize: 24,
-                              fontWeight: FontWeight.bold,
+                          Center(
+                            child: Column(
+                              children: [
+                                Image.asset('assets/logo.png'),
+                                const SizedBox(height: 20),
+                                const Text(
+                                  "D-SAi QR CODE System",
+                                  style: TextStyle(
+                                    fontSize: 24,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                const SizedBox(height: 10),
+                                Lottie.asset(
+                                  'assets/lotties/loginAnimation.json',
+                                  width: 150,
+                                  height: 150,
+                                  fit: BoxFit.contain,
+                                ),
+                              ],
                             ),
                           ),
-                          const SizedBox(height: 10),
-                          Lottie.asset(
-                            'assets/lotties/loginAnimation.json',
-                            width: 200,
-                            height: 200,
-                            fit: BoxFit.contain,
+                          const SizedBox(height: 20),
+                          const Text(
+                            "Welcome Back,",
+                            style: TextStyle(
+                              color: Colors.black,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 18,
+                            ),
                           ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-                    const Text(
-                      "Welcome Back,",
-                      style: TextStyle(
-                        color: Colors.black,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 18,
-                      ),
-                    ),
-                    const SizedBox(height: 5),
-                    const Text(
-                      "Step into your team and unleash your optimal performance during every work hour.",
-                    ),
-                    const SizedBox(height: 10),
-                    TextField(
-                      controller: _userIdController,
-                      decoration: InputDecoration(
-                        labelText: "User ID",
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        hintText: "Enter your User ID",
-                      ),
-                    ),
-                    const SizedBox(height: 15),
-                    SizedBox(
-                      width: double.infinity,
-                      height: 50,
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF00B884),
-                        ),
-                        onPressed: _handleLogin,
-                        child: const Text(
-                          "Login",
-                          style: TextStyle(color: Colors.white,fontSize: 16),
-                        ),
-                      ),
-                    ),
-                    SizedBox(height: 25,),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-
-                        children: [
-                          GestureDetector(
-                            onTap: () {
-                              // Navigate to ForgetID
-                              Navigator.pushReplacement(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => ForgetID(),
-                                ),
-                              );
-                            },
-                            child: const Text(
-                              "Forget User ID",
-                              style: TextStyle(
-                                color: Color(0xff00B884),
-                                fontWeight: FontWeight.bold,
+                          const SizedBox(height: 5),
+                          const Text(
+                            "Step into your team and unleash your optimal performance during every work hour.",
+                          ),
+                          const SizedBox(height: 10),
+                          TextField(
+                            controller: _userIdController,
+                            decoration: InputDecoration(
+                              labelText: "User ID",
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              hintText: "Enter your User ID",
+                            ),
+                          ),
+                          const SizedBox(height: 15),
+                          SizedBox(
+                            width: double.infinity,
+                            height: 50,
+                            child: ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFF00B884),
+                              ),
+                              onPressed: _handleLogin,
+                              child: const Text(
+                                "Login",
+                                style:
+                                    TextStyle(color: Colors.white, fontSize: 16),
                               ),
                             ),
                           ),
-                          // TextButton(
-                          //   onPressed: () {
-                          //     // Navigate to Give Feedback
-                          //     Navigator.pushReplacement(
-                          //       context,
-                          //       MaterialPageRoute(
-                          //         builder: (context) => GiveFeedback(),
-                          //       ),
-                          //     );
-                          //   },
-                          //   child: const Text(
-                          //     "Give Feedback",
-                          //     style: TextStyle(
-                          //       color: Colors.redAccent,
-                          //       fontWeight: FontWeight.bold,
-                          //     ),
-                          //   ),
-                          // ),
+                          SizedBox(
+                            height: 25,
+                          ),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              GestureDetector(
+                                onTap: () {
+                                  // Navigate to ForgetID
+                                  Navigator.pushReplacement(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => ForgetID(),
+                                    ),
+                                  );
+                                },
+                                child: const Text(
+                                  "Forget User ID",
+                                  style: TextStyle(
+                                    color: Color(0xff00B884),
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                              // TextButton(
+                              //   onPressed: () {
+                              //     // Navigate to Give Feedback
+                              //     Navigator.pushReplacement(
+                              //       context,
+                              //       MaterialPageRoute(
+                              //         builder: (context) => GiveFeedback(),
+                              //       ),
+                              //     );
+                              //   },
+                              //   child: const Text(
+                              //     "Give Feedback",
+                              //     style: TextStyle(
+                              //       color: Colors.redAccent,
+                              //       fontWeight: FontWeight.bold,
+                              //     ),
+                              //   ),
+                              // ),
+                            ],
+                          ),
+                          // Text(
+                          //     "Company: "),
+                          DSAiFooter(), // Footer widget
                         ],
                       ),
-                      // Text(
-                      //     "Company: "),
-                    DSAiFooter(), // Footer widget
-                  ],
+                    ),
+                  ),
                 ),
-              ),
+                if (_isLoading)
+                  Center(
+                    child: CircularProgressIndicator(
+                      color: const Color(0xFF00B884),
+                    ),
+                  ),
+              ],
             ),
           ),
-          if (_isLoading)
-            Center(
-              child: 
-                  CircularProgressIndicator(
-                    color: const Color(0xFF00B884),
-                  ),
-               
-            ),
-        ],
-      ),
-    ));
+        ));
   }
-
 }

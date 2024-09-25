@@ -37,10 +37,17 @@ class _UserDashboardState extends State<UserDashboard> {
   String userId = '';
   String companyName = '';
   String referencePerson = '';
+  double _opacity = 0.0;
 
   @override
   void initState() {
     super.initState();
+    Future.delayed(Duration(milliseconds: 500), () {
+      setState(() {
+        _opacity = 1.0; // Fade in after 500ms
+      });
+    });
+    print("Received accessId: ${widget.accessId}");
     _loadUserProfileData(); // Load user profile data from local storage
     _loadCheckInStatus(); // Load check-in status and elapsed time
   }
@@ -49,40 +56,56 @@ class _UserDashboardState extends State<UserDashboard> {
   Future<void> _loadUserProfileData() async {
     final prefs = await SharedPreferences.getInstance();
     final userData = prefs.getString('userData');
-    print(" local user ${json.decode(userData!)}");
-    if (userData != null) {
+    if (userData != null && userData.isNotEmpty) {
       final user = json.decode(userData);
 
-      // Update the user profile data
-      setState(() {
-        userName = user['contractorFullName'] ?? 'User Name';
-        userId = user['eid'] ?? 'User ID';
-        companyName = user['COMPANY NAME'] ?? 'Company Name';
-        referencePerson = user['REFERNCE PERSON'] ?? 'Reference Person';
-      });
+      if (user != null && user is Map) {
+        setState(() {
+          userName = user['contractorFullName'] ?? 'User Name';
+          userId = user['eid'] ?? 'User ID';
+          companyName = user['COMPANY NAME'] ?? 'Company Name';
+          referencePerson = user['REFERNCE PERSON'] ?? 'Reference Person';
+        });
+      } else {
+        print("User data is invalid.");
+      }
+    } else {
+      print("No user data found.");
     }
   }
 
   // Load check-in status and elapsed time from local storage
   Future<void> _loadCheckInStatus() async {
     final prefs = await SharedPreferences.getInstance();
-    final isCheckedIn = prefs.getBool('isCheckedIn') ?? false;
 
-    final checkInTimeStr = prefs.getString('checkInTime');
+    // Safely fetch and check check-in status
+    final bool isCheckedIn = prefs.getBool('isCheckedIn') ?? false;
+
+    // Safely fetch check-in time string
+    final String? checkInTimeStr = prefs.getString('checkInTime');
+
     // Set slider position based on the check-in status
-    final screenWidth = MediaQuery.of(context).size.width;
-    final maxWidth = screenWidth < 600 ? screenWidth * .7 : 320;
+    final double screenWidth = MediaQuery.of(context).size.width;
+    final double maxWidth = screenWidth < 600 ? screenWidth * .7 : 320;
 
-    if (isCheckedIn &&
-        !_isCheckedOut &&
-        checkInTimeStr != null) {
-      setState(() {
-        _isCheckedIn = true;
-        _isCheckedOut = false;
-        _checkInTime = DateTime.parse(checkInTimeStr);
-        _sliderPosition = maxWidth-0; // Set slider to the rightmost position
-        _startTimer(); // Start the timer
-      });
+    if (isCheckedIn && !_isCheckedOut && checkInTimeStr != null) {
+      try {
+        setState(() {
+          _isCheckedIn = true;
+          _isCheckedOut = false;
+          _checkInTime = DateTime.parse(checkInTimeStr); // Safely parse the date
+          _sliderPosition = maxWidth - 18; // Set slider to the rightmost position
+          _startTimer(); // Start the timer
+        });
+      } catch (e) {
+        // If parsing fails or any other error occurs, log and reset values
+        print("Error parsing check-in time: $e");
+        setState(() {
+          _isCheckedIn = false;
+          _isCheckedOut = false;
+          _sliderPosition = 0.0; // Reset slider to the leftmost position
+        });
+      }
     } else {
       setState(() {
         _isCheckedIn = false;
@@ -96,20 +119,22 @@ class _UserDashboardState extends State<UserDashboard> {
   void _startTimer() {
     _timer?.cancel(); // Cancel any existing timer
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      setState(() {
-        _elapsedTime =
-            DateTime.now().difference(_checkInTime!); // Update elapsed time
-      });
+      if (_checkInTime != null) {
+        setState(() {
+          _elapsedTime = DateTime.now().difference(_checkInTime!); // Update elapsed time
+        });
+      } else {
+        // Handle null case (e.g., stop the timer)
+        timer.cancel();
+      }
     });
   }
 
   // Function to format the elapsed time into HH:MM:SS
   String _formatElapsedTime() {
     final hours = _elapsedTime.inHours.toString().padLeft(2, '0');
-    final minutes =
-        _elapsedTime.inMinutes.remainder(60).toString().padLeft(2, '0');
-    final seconds =
-        _elapsedTime.inSeconds.remainder(60).toString().padLeft(2, '0');
+    final minutes = _elapsedTime.inMinutes.remainder(60).toString().padLeft(2, '0');
+    final seconds = _elapsedTime.inSeconds.remainder(60).toString().padLeft(2, '0');
     return '$hours:$minutes:$seconds';
   }
 
@@ -118,16 +143,8 @@ class _UserDashboardState extends State<UserDashboard> {
     setState(() {
       _sliderPosition += details.delta.dx;
 
-      // Check-in swipe right
-      if ((!_isCheckedIn && !_isCheckedOut) || !_isCheckedIn) {
-        _sliderPosition =
-            _sliderPosition.clamp(0.0, maxWidth); // Constrain within bounds
-      }
-      // Check-out swipe left
-      else {
-        _sliderPosition =
-            _sliderPosition.clamp(0, maxWidth); // Constrain within bounds
-      }
+      // Ensure that the slider is within bounds
+      _sliderPosition = _sliderPosition.clamp(0.0, maxWidth);
     });
   }
 
@@ -149,7 +166,7 @@ class _UserDashboardState extends State<UserDashboard> {
   void _showCheckInConfirmation(double maxWidth) async {
     // Call the check-in API
     DateTime now = DateTime.now();
-    var result = await checkInApiCall(now.toIso8601String());
+    var result = await checkInApiCall(now.toUtc().toIso8601String());
 
     if (result) {
       setState(() {
@@ -168,10 +185,15 @@ class _UserDashboardState extends State<UserDashboard> {
   // Save check-in status and check-in time to SharedPreferences
   Future<void> _saveCheckInStatus(bool isCheckedIn, String checkInTime) async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('isCheckedIn', isCheckedIn);
-    await prefs.setBool('isCheckedOut', false);
-    await prefs.setString('checkInTime', checkInTime);
-    await prefs.setString('accessKey', widget.accessId);
+    try {
+      await prefs.setBool('isCheckedIn', isCheckedIn);
+      await prefs.setBool('isCheckedOut', false);
+      await prefs.setString('checkInTime', checkInTime);
+      await prefs.setString('accessKey', widget.accessId);
+      print("Check-in status saved successfully.");
+    } catch (e) {
+      print("Failed to save check-in status: $e");
+    }
   }
 
   // Save check-out time to SharedPreferences
@@ -214,8 +236,7 @@ class _UserDashboardState extends State<UserDashboard> {
             String breakTime = '$selectedHours:$selectedMinutes';
             final prefs = await SharedPreferences.getInstance();
 
-            var result =
-                await checkOutApiCall(now.toIso8601String(), breakTime);
+            var result = await checkOutApiCall(now.toUtc().toIso8601String(), breakTime);
 
             if (result) {
               await prefs.setBool('isCheckedOut', true);
@@ -272,9 +293,11 @@ class _UserDashboardState extends State<UserDashboard> {
         _isCheckedOut = false;
       });
       if (response.statusCode == 200) {
+        print("checked in success ${response.body}");
         return true;
       } else {
         print("Failed to check in: ${response.body}");
+        showToast("Failed to check in. Please try again later.");
         return false;
       }
     } catch (e) {
@@ -282,6 +305,7 @@ class _UserDashboardState extends State<UserDashboard> {
         _isCheckedOut = false;
       });
       print("Error during check-in: $e");
+      showToast("Error during check-in: $e");
       return false;
     }
   }
@@ -316,6 +340,7 @@ class _UserDashboardState extends State<UserDashboard> {
           _isCheckedOut = false;
         });
         print("Failed to check out: ${response.body}");
+        showToast("Failed to check out. Please try again later.");
         return false;
       }
     } catch (e) {
@@ -323,6 +348,7 @@ class _UserDashboardState extends State<UserDashboard> {
         _isCheckedOut = false;
       });
       print("Error during check-out: $e");
+      showToast("Error during check-out: $e");
       return false;
     }
   }
@@ -333,7 +359,7 @@ class _UserDashboardState extends State<UserDashboard> {
       msg: message,
       toastLength: Toast.LENGTH_SHORT,
       gravity: ToastGravity.BOTTOM,
-      backgroundColor: Colors.black,
+      backgroundColor: Colors.black.withOpacity(0.8),
       textColor: Colors.white,
       fontSize: 16.0,
     );
@@ -364,202 +390,208 @@ class _UserDashboardState extends State<UserDashboard> {
           appBar: DSAiAppBar(title: "D-SAi QR Code System"),
           drawer: DSAiDrawer(),
           backgroundColor: Colors.white,
-          body: Center(
-            child: SingleChildScrollView(
-              child: Container(
-                padding: EdgeInsets.symmetric(horizontal: 20),
-                child: Column(
-                  children: [
-                    // Top icon/logo
-                    Container(
-                      margin: const EdgeInsets.only(top: 20, bottom: 10),
-                      padding: const EdgeInsets.all(20),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(50),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black12,
-                            blurRadius: 10,
-                            spreadRadius: 2,
-                          ),
-                        ],
+          body: AnimatedOpacity(
+            opacity: _opacity,
+            duration: Duration(milliseconds: 500),
+            child: Center(
+              child: SingleChildScrollView(
+                child: Container(
+                  padding: EdgeInsets.symmetric(horizontal: 20),
+                  child: Column(
+                    children: [
+                      // Top icon/logo
+                      Container(
+                        margin: const EdgeInsets.only(top: 20, bottom: 10),
+                        padding: const EdgeInsets.all(20),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(50),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black12,
+                              blurRadius: 10,
+                              spreadRadius: 2,
+                            ),
+                          ],
+                        ),
+                        child: Image.asset("assets/logo.png"),
                       ),
-                      child: Image.asset("assets/logo.png"),
-                    ),
 
-                    // User Info Section
-                    Container(
-                      width: screenWidth < 600 ? screenWidth * 1 : 380,
-                      padding: const EdgeInsets.all(20),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(15),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black12,
-                            blurRadius: 10,
-                            spreadRadius: 2,
-                          ),
-                        ],
-                      ),
-                      child: Column(
-                        children: [
-                          Text(
-                            userName,
-                            style: const TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                              color: Color(0xFF00B884),
+                      // User Info Section
+                      Container(
+                        width: screenWidth < 600 ? screenWidth * 1 : 380,
+                        padding: const EdgeInsets.all(20),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(15),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black12,
+                              blurRadius: 10,
+                              spreadRadius: 2,
                             ),
-                          ),
-                          const SizedBox(height: 10),
-
-                          // Profile Card
-                          Container(
-                            padding: const EdgeInsets.all(10),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(15),
-                              border: Border.all(color: Colors.grey.shade300),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black12,
-                                  blurRadius: 5,
-                                  spreadRadius: 1,
-                                ),
-                              ],
-                            ),
-                            child: Row(
-                              children: [
-                                CircleAvatar(
-                                  backgroundColor: Colors.grey[300],
-                                  child: Text(userName[0]),
-                                ),
-                                const SizedBox(width: 10),
-                                Column(
-                                  crossAxisAlignment:
-                                      CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      userName,
-                                      style: const TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                    Text(
-                                      'UID $userId',
-                                      style: const TextStyle(
-                                        fontSize: 12,
-                                        color: Colors.black54,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(height: 10),
-                          Stack(
-                            children: [
-                              Image.asset(
-                                'assets/clock.png',
+                          ],
+                        ),
+                        child: Column(
+                          children: [
+                            Text(
+                              userName,
+                              style: const TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF00B884),
                               ),
-                              Positioned(
-                                top: 25,
-                                left: 15,
-                                child: Lottie.asset(
-                                  'assets/lotties/clock.json',
-                                  width: 200,
-                                  height: 150,
-                                  fit: BoxFit.contain,
-                                ),
-                              ),
-                            ],
-                          ),
-                          SizedBox(height: 5),
-
-                          const SizedBox(height: 20),
-
-                          // Display countdown timer
-                          Text(
-                            _formatElapsedTime(),
-                            style: const TextStyle(
-                              fontSize: 45,
-                              fontWeight: FontWeight.bold,
-                              color: Color(0xFF00B884),
                             ),
-                          ),
-                          const SizedBox(height: 20),
+                            const SizedBox(height: 10),
 
-                          // Custom Sliding Check-In / Check-Out Button
-                          Stack(
-                            children: [
-                              Container(
-                                height: 60,
-                                width: double.infinity,
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFF00B884)
-                                      .withOpacity(0.2),
-                                  borderRadius: BorderRadius.circular(30),
-                                ),
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Text(
-                                      _isCheckedIn && !_isCheckedOut
-                                          ? ' Swipe to Check Out'
-                                          : ' Swipe to Check In',
-                                      style: TextStyle(
-                                          color: Colors.black,
-                                          fontSize: 15,
-                                          fontWeight: FontWeight.bold),
-                                    ),
-                                  ],
-                                ),
+                            // Profile Card
+                            Container(
+                              padding: const EdgeInsets.all(10),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(15),
+                                border: Border.all(color: Colors.grey.shade300),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black12,
+                                    blurRadius: 5,
+                                    spreadRadius: 1,
+                                  ),
+                                ],
                               ),
-                              Positioned(
-                                left: _sliderPosition,
-                                child: GestureDetector(
-                                  onHorizontalDragUpdate: (details) =>
-                                      _onDragUpdate(details, maxWidth),
-                                  onHorizontalDragEnd: (details) =>
-                                      _onDragEnd(maxWidth),
-                                  child: AnimatedContainer(
-                                    duration: const Duration(milliseconds: 100),
-                                    height: 60,
-                                    width: 60,
-                                    decoration: BoxDecoration(
-                                      color: const Color(0xFF00B884),
-                                      borderRadius:
-                                          BorderRadius.circular(50),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: Colors.black26,
-                                          blurRadius: 5,
-                                          spreadRadius: 1,
+                              child: Row(
+                                children: [
+                                  CircleAvatar(
+                                    backgroundColor: Colors.grey[300],
+                                    child: userName.isNotEmpty
+                                        ? Text(userName[0])
+                                        : Icon(Icons.person),
+                                  ),
+                                  const SizedBox(width: 10),
+                                  Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        userName,
+                                        style: const TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
                                         ),
-                                      ],
-                                    ),
-                                    child: Icon(
-                                      _isCheckedIn && !_isCheckedOut
-                                          ? Icons.chevron_left
-                                          : Icons.chevron_right,
-                                      color: Colors.white,
-                                      size: 30,
+                                      ),
+                                      Text(
+                                        'UID $userId',
+                                        style: const TextStyle(
+                                          fontSize: 12,
+                                          color: Colors.black54,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(height: 10),
+                            Stack(
+                              children: [
+                                Image.asset(
+                                  'assets/clock.png',
+                                ),
+                                Positioned(
+                                  top: 25,
+                                  left: 15,
+                                  child: Lottie.asset(
+                                    'assets/lotties/clock.json',
+                                    width: 200,
+                                    height: 150,
+                                    fit: BoxFit.contain,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            SizedBox(height: 5),
+
+                            const SizedBox(height: 20),
+
+                            // Display countdown timer
+                            Text(
+                              _formatElapsedTime(),
+                              style: const TextStyle(
+                                fontSize: 45,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF00B884),
+                              ),
+                            ),
+                            const SizedBox(height: 20),
+
+                            // Custom Sliding Check-In / Check-Out Button
+                            Stack(
+                              children: [
+                                Container(
+                                  height: 60,
+                                  width: double.infinity,
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFF00B884)
+                                        .withOpacity(0.2),
+                                    borderRadius: BorderRadius.circular(30),
+                                  ),
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Text(
+                                        _isCheckedIn && !_isCheckedOut
+                                            ? ' Swipe to Check Out'
+                                            : ' Swipe to Check In',
+                                        style: TextStyle(
+                                            color: Colors.black,
+                                            fontSize: 15,
+                                            fontWeight: FontWeight.bold),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                Positioned(
+                                  left: _sliderPosition,
+                                  child: GestureDetector(
+                                    onHorizontalDragUpdate: (details) =>
+                                        _onDragUpdate(details, maxWidth),
+                                    onHorizontalDragEnd: (details) =>
+                                        _onDragEnd(maxWidth),
+                                    child: AnimatedContainer(
+                                      duration:
+                                          const Duration(milliseconds: 100),
+                                      height: 60,
+                                      width: 60,
+                                      decoration: BoxDecoration(
+                                        color: const Color(0xFF00B884),
+                                        borderRadius: BorderRadius.circular(50),
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: Colors.black26,
+                                            blurRadius: 5,
+                                            spreadRadius: 1,
+                                          ),
+                                        ],
+                                      ),
+                                      child: Icon(
+                                        _isCheckedIn && !_isCheckedOut
+                                            ? Icons.chevron_left
+                                            : Icons.chevron_right,
+                                        color: Colors.white,
+                                        size: 30,
+                                      ),
                                     ),
                                   ),
                                 ),
-                              ),
-                            ],
-                          ),
-                        ],
+                              ],
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                    // Footer
-                    DSAiFooter(),
-                  ],
+                      // Footer
+                      DSAiFooter(),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -573,7 +605,8 @@ class BreakTimeDialog extends StatefulWidget {
   final Function(int, int) onTimeSelected;
   final VoidCallback onClose;
 
-  const BreakTimeDialog({Key? key, required this.onTimeSelected, required this.onClose})
+  const BreakTimeDialog(
+      {Key? key, required this.onTimeSelected, required this.onClose})
       : super(key: key);
 
   @override

@@ -36,10 +36,17 @@ class ClientDashboard extends StatefulWidget {
 class _ClientDashboardState extends State<ClientDashboard> {
   List<dynamic> _employeeViews = [];
   bool _isLoading = true;
+  double _opacity = 0.0;
 
   @override
   void initState() {
     super.initState();
+    Future.delayed(Duration(milliseconds: 500), () {
+      setState(() {
+        _opacity = 1.0; // Fade in after 500ms
+      });
+    });
+
     _fetchEmployeeViews(); // Fetch data when the page loads
   }
 
@@ -78,68 +85,80 @@ class _ClientDashboardState extends State<ClientDashboard> {
   @override
   Widget build(BuildContext context) {
     return PopScope(
-  canPop: false,
-  onPopInvokedWithResult  : (didPop, result) {
-     // Pop all routes and navigate to HomePage
-        Navigator.pushAndRemoveUntil(
-          context,
-          MaterialPageRoute(builder: (context) => HomePage()),
-          (Route<dynamic> route) => false, // Remove all routes
-        );
-        // return result.; // Indicate that the pop is handled
-  } ,
-child: Scaffold(
-      appBar: DSAiAppBar(title: "Client Dashboard - ${widget.userName}"),
-      drawer: DSAiDrawer(),
-      body: _isLoading
-          ? const Center(
-              child: CircularProgressIndicator(color: kLoadingIndicatorColor))
-          : _employeeViews.isEmpty
+        canPop: false,
+        onPopInvokedWithResult: (didPop, result) {
+          // Pop all routes and navigate to HomePage
+          Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(builder: (context) => HomePage()),
+            (Route<dynamic> route) => false, // Remove all routes
+          );
+          // return result.; // Indicate that the pop is handled
+        },
+        child: Scaffold(
+          appBar: DSAiAppBar(title: "Client Dashboard - ${widget.userName}"),
+          drawer: DSAiDrawer(),
+          body: _isLoading
               ? const Center(
-                  child: Text("No employee data found.",
-                      style: TextStyle(fontSize: 16)))
-              : Column(
-                  children: [
-                    Container(
-                      child: CompanyCard(
-                        companyData: {
-                          'companyName': _employeeViews[0]['companyName'],
-                          'companyAddress': _employeeViews[0]['companyAddress'],
-                          'companyMailId': _employeeViews[0]['companyMailId'],
-                          'companyNumber': _employeeViews[0]['companyNumber'],
-                        },
-                      ),
-                    ),
-                    Expanded(
-                      child: SingleChildScrollView(
-                        child: SingleChildScrollView(
-                          scrollDirection: Axis.horizontal,
-                          child: DataTable(
-                            columns: _createColumns(),
-                            rows: _createGroupedRows(),
+                  child:
+                      CircularProgressIndicator(color: kLoadingIndicatorColor))
+              : _employeeViews.isEmpty
+                  ? AnimatedOpacity(
+                      opacity: _opacity,
+                      duration: const Duration(milliseconds: 500),
+                      child: const Center(
+                          child: Text("No employee data found.",
+                              style: TextStyle(fontSize: 16))),
+                    )
+                  : AnimatedOpacity(
+                      opacity: _opacity,
+                      duration: const Duration(milliseconds: 500),
+                      child: Column(
+                        children: [
+                          Container(
+                            child: CompanyCard(
+                              companyData: {
+                                'companyName': _employeeViews[0]['companyName'],
+                                'companyAddress': _employeeViews[0]
+                                    ['companyAddress'],
+                                'companyMailId': _employeeViews[0]
+                                    ['companyMailId'],
+                                'companyNumber': _employeeViews[0]
+                                    ['companyNumber'],
+                              },
+                            ),
                           ),
-                        ),
+                          Expanded(
+                            child: SingleChildScrollView(
+                              child: SingleChildScrollView(
+                                scrollDirection: Axis.horizontal,
+                                child: DataTable(
+                                  columns: _createColumns(),
+                                  rows: _createGroupedRows(),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                  ],
-                ),
-    ));
+        ));
   }
 
   // Group employee data by date
   Map<String, List<dynamic>> _groupByDate() {
     Map<String, List<dynamic>> groupedData = {};
-    
+
     for (var view in _employeeViews) {
       String date = formatDate(view['date']);
-      
+
       if (!groupedData.containsKey(date)) {
         groupedData[date] = [];
       }
-      
+
       groupedData[date]!.add(view);
     }
-    
+
     return groupedData;
   }
 
@@ -173,35 +192,35 @@ child: Scaffold(
       // Add rows for each employee under the date
       for (var view in views) {
         rows.add(DataRow(cells: [
-       
-  DataCell(
-
-  Container(
-    padding: EdgeInsets.symmetric(vertical: 2, horizontal: 5),
-    child: Row(
-      children: [
-        CircleAvatar(
-          backgroundImage: AssetImage('assets/employee_profile.png'),
-          radius: 20, // Adjust the size of the profile image
-        ),
-        const SizedBox(width: 10), // Add some space between the image and the text
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              view['contractorFullName'] ?? 'N/A',
-              
-              style: TextStyle(fontWeight: FontWeight.bold),
+          DataCell(
+            Container(
+              padding: EdgeInsets.symmetric(vertical: 2, horizontal: 5),
+              child: Row(
+                children: [
+                  CircleAvatar(
+                    backgroundImage: AssetImage('assets/employee_profile.png'),
+                    radius: 20, // Adjust the size of the profile image
+                  ),
+                  const SizedBox(
+                      width:
+                          10), // Add some space between the image and the text
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        view['contractorFullName'] ?? 'N/A',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(
+                          height: 4), // Add spacing between name and role
+                      Text(view['employeePosition'] ?? 'N/A',
+                          style: TextStyle(fontSize: 12, color: Colors.grey)),
+                    ],
+                  ),
+                ],
+              ),
             ),
-            const SizedBox(height: 4), // Add spacing between name and role
-            Text( view['employeePosition'] ?? 'N/A', style: TextStyle(fontSize: 12, color: Colors.grey)),
-          ],
-        ),
-      ],
-    ),
-  ),
-),
-
+          ),
           DataCell(Text(formatDate(view['date']))),
           DataCell(Text(formatTime(view['checkedIn']))),
           DataCell(Text(formatTime(view['checkedOut']))),
@@ -228,7 +247,6 @@ child: Scaffold(
           label: Text(
         'Employee',
       )),
-    
       const DataColumn(label: Text('Date')),
       const DataColumn(label: Text('Check In')),
       const DataColumn(label: Text('Check Out')),

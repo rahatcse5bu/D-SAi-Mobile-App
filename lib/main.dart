@@ -166,13 +166,13 @@ class _SplashScreenState extends State<SplashScreen> {
           children: [
             Image.asset(
               'assets/D_SAi_Logo.png', // Logo at the center of splash screen
-              width: 250,
-              height: 250,
+              width: 180,
+              height: 180,
             ),
             const SizedBox(height: 15,),
             // const CircularProgressIndicator(color: Color(0xFF00B884) ,), 
             
-          const SpinKitPouringHourGlass(color: Color(0xFF00B884) )
+          const SpinKitPouringHourGlass(color: Color(0xFF00B884), size: 100, )
           ],
         ),
       ),

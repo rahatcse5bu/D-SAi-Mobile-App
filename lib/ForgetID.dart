@@ -18,7 +18,18 @@ class ForgetID extends StatefulWidget {
 class _ForgetIDState extends State<ForgetID> {
   final TextEditingController emailController = TextEditingController();
   bool _isLoading = false; // Loading state
-
+  double _opacity = 0.0;
+@override  
+@override
+void initState() {
+      Future.delayed(Duration(milliseconds: 500), () {
+      setState(() {
+        _opacity = 1.0; // Fade in after 500ms
+      });
+    });
+  super.initState();
+  
+}
   // Function to retrieve user ID based on email
   Future<void> _retrieveUserId() async {
     final email = emailController.text.trim();
@@ -106,135 +117,139 @@ child: Scaffold(
       appBar: DSAiAppBar(),
       drawer: DSAiDrawer(),
       backgroundColor: Colors.white,
-      body: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
-        child: Center(
-          child: SingleChildScrollView(
-            child: Column(
-              children: [
-                // Top icon/logo
-                Container(
-                  margin: const EdgeInsets.only(bottom: 10),
-                  padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(30),
-                    boxShadow: const [
-                      BoxShadow(
-                        color: Colors.black12,
-                        blurRadius: 10,
-                        spreadRadius: 2,
-                      ),
-                    ],
-                  ),
-                  child: Image.asset('assets/logo.png'),
-                ),
-
-                // Main Form Container
-                Container(
-                  width: screenWidth < 600 ? screenWidth * 0.9 : 400, // Responsive width
-                  padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 25),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(15),
-                    boxShadow: const [
-                      BoxShadow(
-                        color: Colors.black12,
-                        blurRadius: 10,
-                        spreadRadius: 2,
-                      ),
-                    ],
-                  ),
-                  child: Column(
-                    children: [
-                      const Text(
-                        'Forgot User ID',
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF00B884),
+      body: AnimatedOpacity(
+        opacity: _opacity,
+        duration: Duration(milliseconds: 500),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
+          child: Center(
+            child: SingleChildScrollView(
+              child: Column(
+                children: [
+                  // Top icon/logo
+                  Container(
+                    margin: const EdgeInsets.only(bottom: 10),
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(30),
+                      boxShadow: const [
+                        BoxShadow(
+                          color: Colors.black12,
+                          blurRadius: 10,
+                          spreadRadius: 2,
                         ),
-                      ),
-                      const SizedBox(height: 10),
-                      const Text(
-                        'Enter your email address to retrieve your User ID.',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.black54,
+                      ],
+                    ),
+                    child: Image.asset('assets/logo.png'),
+                  ),
+        
+                  // Main Form Container
+                  Container(
+                    width: screenWidth < 600 ? screenWidth * 0.9 : 400, // Responsive width
+                    padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 25),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(15),
+                      boxShadow: const [
+                        BoxShadow(
+                          color: Colors.black12,
+                          blurRadius: 10,
+                          spreadRadius: 2,
                         ),
-                      ),
-                      const SizedBox(height: 20),
-
-                      // Email Input Field
-                      TextFormField(
-                        controller: emailController,
-                        decoration: InputDecoration(
-                          labelText: 'Email Address',
-                          hintText: 'you@example.com',
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8),
+                      ],
+                    ),
+                    child: Column(
+                      children: [
+                        const Text(
+                          'Forgot User ID',
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF00B884),
                           ),
                         ),
-                      ),
-                      const SizedBox(height: 20),
-
-                      // Retrieve User ID Button
-                      SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton(
-                          onPressed: _retrieveUserId,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.purple, // Button background color
-                            shape: RoundedRectangleBorder(
+                        const SizedBox(height: 10),
+                        const Text(
+                          'Enter your email address to retrieve your User ID.',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.black54,
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+        
+                        // Email Input Field
+                        TextFormField(
+                          controller: emailController,
+                          decoration: InputDecoration(
+                            labelText: 'Email Address',
+                            hintText: 'you@example.com',
+                            border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(8),
                             ),
                           ),
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 20),
-                            child: _isLoading
-                                ? const CircularProgressIndicator(
-                                    color: Colors.white,
-                                  )
-                                : const Text(
-                                    'Retrieve User ID',
-                                    style: TextStyle(color: Colors.white, fontSize: 16),
-                                  ),
-                          ),
                         ),
-                      ),
-                      const SizedBox(height: 10),
-
-                      // Back Button
-                      SizedBox(
-                        width: double.infinity,
-                        child: OutlinedButton(
-                          onPressed: () {
-                            Navigator.pop(context);
-                          },
-                          style: OutlinedButton.styleFrom(
-                            side: const BorderSide(color: Color(0xFF00B884)),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
+                        const SizedBox(height: 20),
+        
+                        // Retrieve User ID Button
+                        SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton(
+                            onPressed: _retrieveUserId,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.purple, // Button background color
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
                             ),
-                          ),
-                          child: const Padding(
-                            padding: EdgeInsets.symmetric(vertical: 12, horizontal: 20),
-                            child: Text(
-                              'Back',
-                              style: TextStyle(color: Color(0xFF00B884)),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 20),
+                              child: _isLoading
+                                  ? const CircularProgressIndicator(
+                                      color: Colors.white,
+                                    )
+                                  : const Text(
+                                      'Retrieve User ID',
+                                      style: TextStyle(color: Colors.white, fontSize: 16),
+                                    ),
                             ),
                           ),
                         ),
-                      ),
-                    ],
+                        const SizedBox(height: 10),
+        
+                        // Back Button
+                        SizedBox(
+                          width: double.infinity,
+                          child: OutlinedButton(
+                            onPressed: () {
+                              Navigator.pop(context);
+                            },
+                            style: OutlinedButton.styleFrom(
+                              side: const BorderSide(color: Color(0xFF00B884)),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                            ),
+                            child: const Padding(
+                              padding: EdgeInsets.symmetric(vertical: 12, horizontal: 20),
+                              child: Text(
+                                'Back',
+                                style: TextStyle(color: Color(0xFF00B884)),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-                const SizedBox(height: 20),
-
-                // Footer Text and Contact Us Button
-                DSAiFooter(),
-              ],
+                  const SizedBox(height: 20),
+        
+                  // Footer Text and Contact Us Button
+                  DSAiFooter(),
+                ],
+              ),
             ),
           ),
         ),

@@ -23,7 +23,17 @@ class DashboardLogin extends StatefulWidget {
 class _DashboardLoginState extends State<DashboardLogin> {
   final TextEditingController _userIdController = TextEditingController();
   bool _isLoading = false; // State to show loading indicator
-
+double _opacity = 0.0;
+@override
+void initState() {
+      Future.delayed(Duration(milliseconds: 500), () {
+      setState(() {
+        _opacity = 1.0; // Fade in after 500ms
+      });
+    });
+  super.initState();
+  
+}
   // Function to handle DashboardLogin
   Future<void> _handleDashboardLogin() async {
     String userId = _userIdController.text.trim().toUpperCase();
@@ -69,35 +79,35 @@ class _DashboardLoginState extends State<DashboardLogin> {
 
           // Redirect based on whether the user is a client or an employee
           final user = data['data'];
-if (user.containsKey('cid')) {
-  // Client login
-  Navigator.pushReplacement(
-    context,
-    MaterialPageRoute(
-      builder: (context) => ClientDashboard(
-        userName: user['name'] ?? '',
-        cid: user['cid'] ?? '',
-        companyName: user['companyName'] ?? 'Unknown Company',
-      
-      ),
-    ),
-  );
-} else if (user.containsKey('eid')) {
-  // Employee login
-  Navigator.pushReplacement(
-    context,
-    MaterialPageRoute(
-      builder: (context) => EmployeeDashboard(
-        employeeName: user['contractorFullName'] ?? 'No Name',
-        position: user['contractorPosition'] ?? 'No Position', // Changed to 'contractorPosition'
-        employeeId: user['eid'] ?? 'No Employee ID',
-      ),
-    ),
-  );
-} else {
-  _showError("Invalid response format. No Client or Employee ID found.");
-}
-
+          if (user.containsKey('cid')) {
+            // Client login
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (context) => ClientDashboard(
+                  userName: user['name'] ?? '',
+                  cid: user['cid'] ?? '',
+                  companyName: user['companyName'] ?? 'Unknown Company',
+                ),
+              ),
+            );
+          } else if (user.containsKey('eid')) {
+            // Employee login
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (context) => EmployeeDashboard(
+                  employeeName: user['contractorFullName'] ?? 'No Name',
+                  position: user['contractorPosition'] ??
+                      'No Position', // Changed to 'contractorPosition'
+                  employeeId: user['eid'] ?? 'No Employee ID',
+                ),
+              ),
+            );
+          } else {
+            _showError(
+                "Invalid response format. No Client or Employee ID found.");
+          }
         } else {
           _showError("Login failed: ${data['message']}");
         }
@@ -136,112 +146,118 @@ if (user.containsKey('cid')) {
     );
   }
 
-   @override
+  @override
   Widget build(BuildContext context) {
     return PopScope(
-  canPop: false,
-  onPopInvokedWithResult  : (didPop, result) {
-     // Pop all routes and navigate to HomePage
-        Navigator.pushAndRemoveUntil(
-          context,
-          MaterialPageRoute(builder: (context) => HomePage()),
-          (Route<dynamic> route) => false, // Remove all routes
-        );
-        // return result.; // Indicate that the pop is handled
-  } ,
-child: Scaffold(
-      appBar: DSAiAppBar(),
-      drawer: DSAiDrawer(),
-      resizeToAvoidBottomInset: true, // Ensures the layout adapts to the keyboard
-      body: Stack(
-        children: [
-          SingleChildScrollView(
-            child: ConstrainedBox( // Ensure the height is constrained properly
-              constraints: BoxConstraints(
-                minHeight: MediaQuery.of(context).size.height,
-              ),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 50),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Center(
+        canPop: false,
+        onPopInvokedWithResult: (didPop, result) {
+          // Pop all routes and navigate to HomePage
+          Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(builder: (context) => HomePage()),
+            (Route<dynamic> route) => false, // Remove all routes
+          );
+          // return result.; // Indicate that the pop is handled
+        },
+        child: Scaffold(
+          appBar: DSAiAppBar(),
+          drawer: DSAiDrawer(),
+          resizeToAvoidBottomInset:
+              true, // Ensures the layout adapts to the keyboard
+          body: AnimatedOpacity( 
+            opacity: _opacity,
+            duration: Duration(milliseconds: 500),
+            child: Stack(
+              children: [
+                SingleChildScrollView(
+                  child: ConstrainedBox(
+                    // Ensure the height is constrained properly
+                    constraints: BoxConstraints(
+                      minHeight: MediaQuery.of(context).size.height,
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 15, vertical: 50),
                       child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Image.asset('assets/logo.png'),
-                          const SizedBox(height: 20),
-                          const Text(
-                            "D-SAi QR CODE System",
-                            style: TextStyle(
-                              fontSize: 24,
-                              fontWeight: FontWeight.bold,
+                          Center(
+                            child: Column(
+                              children: [
+                                Image.asset('assets/logo.png'),
+                                const SizedBox(height: 20),
+                                const Text(
+                                  "D-SAi QR CODE System",
+                                  style: TextStyle(
+                                    fontSize: 24,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                const SizedBox(height: 10),
+                                Lottie.asset(
+                                  'assets/lotties/loginAnimation.json',
+                                  width: 150,
+                                  height: 150,
+                                  fit: BoxFit.contain,
+                                ),
+                              ],
                             ),
                           ),
-                          const SizedBox(height: 10),
-                          Lottie.asset(
-                            'assets/lotties/loginAnimation.json',
-                            width: 200,
-                            height: 200,
-                            fit: BoxFit.contain,
+                          const SizedBox(height: 20),
+                          const Text(
+                            "Welcome Back,",
+                            style: TextStyle(
+                              color: Colors.black,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 18,
+                            ),
                           ),
+                          const SizedBox(height: 5),
+                          const Text(
+                            "Step into your team and unleash your optimal performance during every work hour.",
+                          ),
+                          const SizedBox(height: 10),
+                          TextField(
+                            controller: _userIdController,
+                            decoration: InputDecoration(
+                              labelText: "User ID",
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              hintText: "Enter your User ID",
+                            ),
+                          ),
+                          const SizedBox(height: 15),
+                          SizedBox(
+                            width: double.infinity,
+                            height: 50,
+                            child: ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFF00B884),
+                              ),
+                              onPressed: _handleDashboardLogin,
+                              child: const Text(
+                                "Login",
+                                style:
+                                    TextStyle(color: Colors.white, fontSize: 16),
+                              ),
+                            ),
+                          ),
+                          DSAiFooter(), // Footer widget
                         ],
                       ),
                     ),
-                    const SizedBox(height: 20),
-                    const Text(
-                      "Welcome Back,",
-                      style: TextStyle(
-                        color: Colors.black,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 18,
-                      ),
-                    ),
-                    const SizedBox(height: 5),
-                    const Text(
-                      "Step into your team and unleash your optimal performance during every work hour.",
-                    ),
-                    const SizedBox(height: 10),
-                    TextField(
-                      controller: _userIdController,
-                      decoration: InputDecoration(
-                        labelText: "User ID",
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        hintText: "Enter your User ID",
-                      ),
-                    ),
-                    const SizedBox(height: 15),
-                    SizedBox(
-                      width: double.infinity,
-                      height: 50,
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF00B884),
-                        ),
-                        onPressed: _handleDashboardLogin,
-                        child: const Text(
-                          "Login",
-                          style: TextStyle(color: Colors.white, fontSize: 16),
-                        ),
-                      ),
-                    ),
-                    DSAiFooter(), // Footer widget
-                  ],
+                  ),
                 ),
-              ),
+                if (_isLoading)
+                  Center(
+                    child: CircularProgressIndicator(
+                      color: const Color(0xFF00B884),
+                    ),
+                  ),
+              ],
             ),
           ),
-          if (_isLoading)
-            Center(
-              child: 
-                  CircularProgressIndicator(
-                    color: const Color(0xFF00B884),
-                  ),
-               
-            ),
-        ],
-      ),
-    ));
+        ));
   }
 }
