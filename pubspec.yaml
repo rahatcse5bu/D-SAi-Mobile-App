@@ -1,0 +1,42 @@
+name: d_sai
+description: "A new Flutter project."
+publish_to: 'none'
+version: 0.1.0
+
+environment:
+  sdk: ^3.5.2
+
+dependencies:
+  flutter:
+    sdk: flutter
+  ai_barcode_scanner: ^5.2.1
+  permission_handler: ^11.0.1
+  geolocator: ^11.0.1
+  lottie: ^2.2.0
+  shared_preferences: ^2.3.2
+  geocoding: ^2.0.0
+  fluttertoast: ^8.0.8
+  intl: ^0.17.0
+  flutter_spinkit: ^5.1.0
+  skeleton_loader: ^2.0.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+  flutter_launcher_icons: "^0.13.1"
+
+flutter_launcher_icons:
+  android: "launcher_icon"
+  ios: true
+  image_path: "assets/D_SAi_Logo.png"
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/
+    - assets/lotties/
+    - assets/logo.png
+    - assets/new_logo.jpeg
+    - assets/logo_alt.png
+    - assets/D_SAi_Logo.png
