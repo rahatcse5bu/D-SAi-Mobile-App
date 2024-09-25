@@ -28,6 +28,7 @@ class _UserDashboardState extends State<UserDashboard> {
   Timer? _timer; // Timer for counting the time after check-in
   Duration _elapsedTime = Duration.zero; // Time elapsed since check-in
   DateTime? _checkInTime; // Track check-in time
+  DateTime? _checkOutTime; // Track check-out time
   int selectedHours = 0; // Variable to store input hours
   int selectedMinutes = 0; // Variable to store input minutes
 
@@ -73,14 +74,13 @@ class _UserDashboardState extends State<UserDashboard> {
     final maxWidth = screenWidth < 600 ? screenWidth * .7 : 320;
 
     if (isCheckedIn &&
-        _isCheckedIn &&
         !_isCheckedOut &&
         checkInTimeStr != null) {
       setState(() {
         _isCheckedIn = true;
         _isCheckedOut = false;
         _checkInTime = DateTime.parse(checkInTimeStr);
-        _sliderPosition = maxWidth -0; // Set slider to the rightmost position
+        _sliderPosition = maxWidth-0; // Set slider to the rightmost position
         _startTimer(); // Start the timer
       });
     } else {
@@ -136,7 +136,7 @@ class _UserDashboardState extends State<UserDashboard> {
     if (!_isCheckedIn && _sliderPosition > maxWidth * 0.7) {
       _showCheckInConfirmation(maxWidth); // Check in when swiping right
     } else if (_isCheckedIn && _sliderPosition < maxWidth * 0.3) {
-      _showBreakTimeDialog(); // Show break dialog on check-out swipe left
+      _showBreakTimeDialog(maxWidth); // Show break dialog on check-out swipe left
     } else {
       // Reset slider if swipe was insufficient
       setState(() {
@@ -174,15 +174,23 @@ class _UserDashboardState extends State<UserDashboard> {
     await prefs.setString('accessKey', widget.accessId);
   }
 
+  // Save check-out time to SharedPreferences
+  Future<void> _saveCheckOutTime(String checkOutTime) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('checkOutTime', checkOutTime);
+  }
+
   // Reset all states upon checkout and redirect to success page
   Future<void> _resetCheckInStatus() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('isCheckedIn', false);
     await prefs.remove('checkInTime');
+    await prefs.remove('checkOutTime');
     setState(() {
       _isCheckedIn = false;
       _elapsedTime = Duration.zero;
       _checkInTime = null;
+      _checkOutTime = null;
     });
     Navigator.pushReplacement(
       context,
@@ -191,7 +199,7 @@ class _UserDashboardState extends State<UserDashboard> {
   }
 
   // Show the break time dialog box and process check-out
-  void _showBreakTimeDialog() {
+  void _showBreakTimeDialog(double maxWidth) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -200,8 +208,6 @@ class _UserDashboardState extends State<UserDashboard> {
             setState(() {
               selectedHours = hours;
               selectedMinutes = minutes;
-              _isCheckedOut = false;
-              _sliderPosition = 0.0;
             });
             // Call the check-out API
             DateTime now = DateTime.now();
@@ -215,17 +221,26 @@ class _UserDashboardState extends State<UserDashboard> {
               await prefs.setBool('isCheckedOut', true);
               setState(() {
                 _isCheckedOut = true;
+                _checkOutTime = now; // Record check-out time
               });
+              _saveCheckOutTime(_checkOutTime!.toIso8601String());
               showToast("Checked out successfully!");
               _timer?.cancel(); // Stop the timer
               await _resetCheckInStatus(); // Reset the status and navigate to SuccessScreen
             } else {
+              // Reset slider to the right
               setState(() {
-                _isCheckedOut = false;
+                _sliderPosition = maxWidth; // Reset to the right for retry
               });
-              await prefs.setBool('isCheckedOut', false);
               showToast("Failed to check out.");
             }
+          },
+          onClose: () {
+            // Reset the slider to the right without performing check-out
+            setState(() {
+              _sliderPosition = maxWidth; // Reset slider back to the right
+            });
+            Navigator.of(context).pop(); // Close the dialog
           },
         );
       },
@@ -556,8 +571,9 @@ class _UserDashboardState extends State<UserDashboard> {
 // Break Time Dialog Widget
 class BreakTimeDialog extends StatefulWidget {
   final Function(int, int) onTimeSelected;
+  final VoidCallback onClose;
 
-  const BreakTimeDialog({Key? key, required this.onTimeSelected})
+  const BreakTimeDialog({Key? key, required this.onTimeSelected, required this.onClose})
       : super(key: key);
 
   @override
@@ -583,8 +599,8 @@ class _BreakTimeDialogState extends State<BreakTimeDialog> {
           actions: [
             TextButton(
               onPressed: () {
-                Navigator.of(context).pop();
-                widget.onTimeSelected(selectedHours, selectedMinutes);
+                Navigator.of(context).pop(); // Close confirmation dialog
+                widget.onClose(); // Reset slider if Cancel is pressed
               },
               child: const Text('Cancel'),
             ),
@@ -624,10 +640,7 @@ class _BreakTimeDialogState extends State<BreakTimeDialog> {
               right: 0,
               child: IconButton(
                 icon: const Icon(Icons.close, color: Colors.red),
-                onPressed: () {
-                  Navigator.of(context).pop();
-                  widget.onTimeSelected(selectedHours, selectedMinutes);
-                },
+                onPressed: widget.onClose,
               ),
             ),
             Column(
