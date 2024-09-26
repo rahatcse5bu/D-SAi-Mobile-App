@@ -35,11 +35,11 @@ class _SignUpPageState extends State<SignUpPage>
   final TextEditingController emailController = TextEditingController();
   final TextEditingController phoneNumberController = TextEditingController();
   final TextEditingController bankDetailsController = TextEditingController();
-double _opacity = 0.0;
+  double _opacity = 0.0;
   @override
   void initState() {
     super.initState();
-        Future.delayed(Duration(milliseconds: 500), () {
+    Future.delayed(Duration(milliseconds: 500), () {
       setState(() {
         _opacity = 1.0; // Fade in after 500ms
       });
@@ -75,10 +75,10 @@ double _opacity = 0.0;
       final response = await http.post(url,
           headers: {'Content-Type': 'application/json'},
           body: jsonEncode(payload));
-
+      final msgBody = jsonDecode(response.body);
       if (response.statusCode == 200) {
         Fluttertoast.showToast(
-          msg: "Client signed up successfully!",
+          msg: "Client Signed up successfully!",
           toastLength: Toast.LENGTH_SHORT,
           gravity: ToastGravity.BOTTOM,
           backgroundColor: Colors.green,
@@ -90,7 +90,7 @@ double _opacity = 0.0;
         });
       } else {
         Fluttertoast.showToast(
-          msg: "Failed to sign up Client.",
+          msg: "$msgBody['message']",
           toastLength: Toast.LENGTH_SHORT,
           gravity: ToastGravity.BOTTOM,
           backgroundColor: Colors.red,
@@ -131,7 +131,9 @@ double _opacity = 0.0;
       final response = await http.post(url,
           headers: {'Content-Type': 'application/json'},
           body: jsonEncode(payload));
+      final msgBody = jsonDecode(response.body);
 
+      print(" employee body ${jsonEncode(payload)}");
       if (response.statusCode == 200) {
         Fluttertoast.showToast(
           msg: "Employee signed up successfully!",
@@ -146,7 +148,7 @@ double _opacity = 0.0;
         _clearEmployeeForm();
       } else {
         Fluttertoast.showToast(
-          msg: "Failed to sign up Employee.",
+          msg: "${msgBody['message']}",
           toastLength: Toast.LENGTH_SHORT,
           gravity: ToastGravity.BOTTOM,
           backgroundColor: Colors.red,
@@ -395,16 +397,20 @@ double _opacity = 0.0;
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8)),
             ),
-            child: Text(
-              text,
-              style: const TextStyle(fontSize: 16, color: Colors.white),
+            child: Row(
+              children: [
+                isLoading
+                    ? CircularProgressIndicator(
+                        color: Colors.white,
+                      )
+                    : Text(
+                        text,
+                        style:
+                            const TextStyle(fontSize: 16, color: Colors.white),
+                      ),
+              ],
             ),
           ),
-          isLoading
-              ? CircularProgressIndicator(
-                  color: Color(0xFF00B884),
-                )
-              : Text("")
         ],
       ),
     );
