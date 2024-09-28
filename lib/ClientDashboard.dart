@@ -3,7 +3,6 @@ import 'package:d_sai/HomePage.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart'; // For date formatting and parsing
-import 'package:fluttertoast/fluttertoast.dart';
 import 'Common/AppBar.dart';
 import 'Common/CompanyInfoCard.dart';
 import 'Common/Drawer.dart';
@@ -38,6 +37,10 @@ class _ClientDashboardState extends State<ClientDashboard> {
   bool _isLoading = true;
   double _opacity = 0.0;
 
+  int _currentPage = 1; // Current page
+  int _totalPages = 1;  // Total number of pages
+  final int _limit = 12; // Limit of items per page
+
   @override
   void initState() {
     super.initState();
@@ -50,17 +53,21 @@ class _ClientDashboardState extends State<ClientDashboard> {
     _fetchEmployeeViews(); // Fetch data when the page loads
   }
 
-  // Fetch data from new API
+  // Fetch data from new API with pagination
   Future<void> _fetchEmployeeViews() async {
+    setState(() {
+      _isLoading = true; // Show loading indicator when fetching
+    });
     try {
       final String apiUrl =
-          'https://dsaiqrbackend.vercel.app/api/v1/clients/client-details/${widget.cid}';
+          'https://dsaiqrbackend.vercel.app/api/v1/clients/client-details/${widget.cid}?page=$_currentPage&limit=$_limit';
       final response = await http.get(Uri.parse(apiUrl));
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         setState(() {
           _employeeViews = data['data'];
+          _totalPages = data['pagination']['pages']; // Set total pages
         });
       } else {
         _showError(
@@ -70,7 +77,7 @@ class _ClientDashboardState extends State<ClientDashboard> {
       _showError('An error occurred: $e');
     } finally {
       setState(() {
-        _isLoading = false;
+        _isLoading = false; // Hide loading indicator after fetching
       });
     }
   }
@@ -80,6 +87,26 @@ class _ClientDashboardState extends State<ClientDashboard> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(message, style: TextStyle(color: kErrorColor))),
     );
+  }
+
+  // Navigate to the next page
+  void _nextPage() {
+    if (_currentPage < _totalPages) {
+      setState(() {
+        _currentPage++;
+        _fetchEmployeeViews();
+      });
+    }
+  }
+
+  // Navigate to the previous page
+  void _previousPage() {
+    if (_currentPage > 1) {
+      setState(() {
+        _currentPage--;
+        _fetchEmployeeViews();
+      });
+    }
   }
 
   @override
@@ -93,7 +120,6 @@ class _ClientDashboardState extends State<ClientDashboard> {
             MaterialPageRoute(builder: (context) => HomePage()),
             (Route<dynamic> route) => false, // Remove all routes
           );
-          // return result.; // Indicate that the pop is handled
         },
         child: Scaffold(
           appBar: DSAiAppBar(title: "Client Dashboard - ${widget.userName}"),
@@ -139,10 +165,31 @@ class _ClientDashboardState extends State<ClientDashboard> {
                               ),
                             ),
                           ),
+                          const SizedBox(height: 10),
+                          _buildPaginationControls(), // Add pagination controls
+                          const SizedBox(height: 10),
                         ],
                       ),
                     ),
         ));
+  }
+
+  // Build pagination controls
+  Widget _buildPaginationControls() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        ElevatedButton(
+          onPressed: _currentPage > 1 ? _previousPage : null,
+          child: Text('Previous'),
+        ),
+        Text('Page $_currentPage of $_totalPages'),
+        ElevatedButton(
+          onPressed: _currentPage < _totalPages ? _nextPage : null,
+          child: Text('Next'),
+        ),
+      ],
+    );
   }
 
   // Group employee data by date
@@ -168,25 +215,14 @@ class _ClientDashboardState extends State<ClientDashboard> {
     List<DataRow> rows = [];
 
     groupedData.forEach((date, views) {
-      // Add a row for the date
+      // Add a row for the date, filling up all 13 columns with empty cells
       rows.add(DataRow(cells: [
         DataCell(Text(
           date,
           style: const TextStyle(fontWeight: FontWeight.bold),
         )),
-        // DataCell(Container()), // Empty cells to fill in the row
-        DataCell(Container()),
-        DataCell(Container()),
-        DataCell(Container()),
-        DataCell(Container()),
-        DataCell(Container()),
-        DataCell(Container()),
-        DataCell(Container()),
-        DataCell(Container()),
-        DataCell(Container()),
-        DataCell(Container()),
-        DataCell(Container()),
-        DataCell(Container()),
+        // Add empty cells for the remaining 12 columns
+        ...List.generate(12, (_) => DataCell(Container())),
       ]));
 
       // Add rows for each employee under the date
@@ -201,9 +237,7 @@ class _ClientDashboardState extends State<ClientDashboard> {
                     backgroundImage: AssetImage('assets/employee_profile.png'),
                     radius: 20, // Adjust the size of the profile image
                   ),
-                  const SizedBox(
-                      width:
-                          10), // Add some space between the image and the text
+                  const SizedBox(width: 10), // Add space between image and text
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -211,8 +245,7 @@ class _ClientDashboardState extends State<ClientDashboard> {
                         view['contractorFullName'] ?? 'N/A',
                         style: TextStyle(fontWeight: FontWeight.bold),
                       ),
-                      const SizedBox(
-                          height: 4), // Add spacing between name and role
+                      const SizedBox(height: 4), // Spacing between name and role
                       Text(view['employeePosition'] ?? 'N/A',
                           style: TextStyle(fontSize: 12, color: Colors.grey)),
                     ],

@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart'; // For date formatting and parsing
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import 'Common/AppBar.dart';
 import 'Common/Drawer.dart';
 import 'Common/EmployeeInfoCard.dart';
@@ -32,11 +31,16 @@ class _EmployeeDashboardState extends State<EmployeeDashboard> {
   bool _isLoading = true;
   String _filterCompanyName = '';
   DateTimeRange? _selectedDateRange;
-double _opacity = 0.0;
+  double _opacity = 0.0;
+
+  int _currentPage = 1; // Current page
+  int _totalPages = 1; // Total pages from API response
+  final int _limit = 12; // Limit of items per page
+
   @override
   void initState() {
     super.initState();
-        Future.delayed(Duration(milliseconds: 500), () {
+    Future.delayed(Duration(milliseconds: 500), () {
       setState(() {
         _opacity = 1.0; // Fade in after 500ms
       });
@@ -44,14 +48,14 @@ double _opacity = 0.0;
     _fetchWorkHistory();
   }
 
-  // Fetch work history data from the API
+  // Fetch work history data from the API with pagination
   Future<void> _fetchWorkHistory() async {
     setState(() {
       _isLoading = true; // Show loading indicator when fetching
     });
     try {
       final String apiUrl =
-          'https://dsaiqrbackend.vercel.app/api/v1/employee-views/all-employee-views-by-eid/${widget.employeeId}';
+          'https://dsaiqrbackend.vercel.app/api/v1/employee-views/all-employee-views-by-eid/${widget.employeeId}?page=$_currentPage&limit=$_limit';
       final response = await http.get(Uri.parse(apiUrl));
 
       if (response.statusCode == 200) {
@@ -60,6 +64,7 @@ double _opacity = 0.0;
           setState(() {
             _workHistory = data['data'];
             _filteredWorkHistory = _workHistory;
+            _totalPages = data['totalPages']; // Set total pages
           });
 
           final prefs = await SharedPreferences.getInstance();
@@ -87,17 +92,6 @@ double _opacity = 0.0;
     );
   }
 
-  // Format date for readability
-  String formatDate(String? dateStr) {
-    if (dateStr == null) return 'Invalid Date'; // Handling null value
-    try {
-      final DateTime date = DateTime.parse(dateStr);
-      return DateFormat('dd MMM, yy').format(date);
-    } catch (e) {
-      return 'Invalid Date';
-    }
-  }
-
   // Format time for Check-in and Check-out
   String formatTime(String? dateTimeStr) {
     if (dateTimeStr == null) return 'Invalid Time'; // Handling null value
@@ -106,6 +100,17 @@ double _opacity = 0.0;
       return DateFormat('h:mm a').format(time);
     } catch (e) {
       return 'Invalid Time';
+    }
+  }
+
+  // Format date for readability
+  String formatDate(String? dateStr) {
+    if (dateStr == null) return 'Invalid Date'; // Handling null value
+    try {
+      final DateTime date = DateTime.parse(dateStr);
+      return DateFormat('dd MMM, yy').format(date);
+    } catch (e) {
+      return 'Invalid Date';
     }
   }
 
@@ -157,7 +162,7 @@ double _opacity = 0.0;
     });
   }
 
-  // Create the table header row
+  // Build the table header row
   TableRow _buildTableHeader() {
     return TableRow(
       children: [
@@ -187,128 +192,6 @@ double _opacity = 0.0;
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return PopScope(
-  canPop: false,
-  onPopInvokedWithResult  : (didPop, result) {
-     // Pop all routes and navigate to HomePage
-        Navigator.pushAndRemoveUntil(
-          context,
-          MaterialPageRoute(builder: (context) => HomePage()),
-          (Route<dynamic> route) => false, // Remove all routes
-        );
-        // return result.; // Indicate that the pop is handled
-  } ,
-child: Scaffold(
-      appBar: DSAiAppBar(),
-      drawer: DSAiDrawer(),
-      body: AnimatedOpacity( 
-        opacity: _opacity,
-        duration: const Duration(milliseconds: 500),
-        child: Column(
-          children: [
-            SizedBox(
-              height: 10,
-            ),
-            EmployeeCard(
-              employeeName: widget.employeeName,
-              position: widget.position,
-              employeeId: widget.employeeId,
-            ),
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  // Company Name Search Field
-                  Expanded(
-                    flex: 3,
-                    child: TextField(
-                      decoration: InputDecoration(
-                        prefixIcon: Icon(Icons.search),
-                        labelText: "Search by Company Name",
-                        border: OutlineInputBorder(
-                          borderSide: BorderSide(
-                            color: const Color.fromARGB(31, 252, 252, 252),
-                            width: 20,
-                          ),
-                          borderRadius: BorderRadius.circular(50),
-                        ),
-                      ),
-                      onChanged: (value) {
-                        setState(() {
-                          _filterCompanyName = value;
-                        });
-                        _applyFilters();
-                      },
-                    ),
-                  ),
-                  const SizedBox(width: 5),
-        
-                  // Filter Icon
-                  ElevatedButton.icon(
-                    onPressed: _pickDateRange,
-                    icon: const Icon(
-                      Icons.filter_list,
-                      color: Colors.white,
-                    ),
-                    label: const Text(
-                      "Filter",
-                      style: TextStyle(color: Colors.white),
-                    ),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF00B884),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 10),
-        
-            // Table with filtered data
-            Expanded(
-              child: _isLoading
-                  ? const Center(
-                      child: CircularProgressIndicator(
-                        color: Color(0xFF00B884),
-                      ),
-                    )
-                  : SingleChildScrollView(
-                      scrollDirection: Axis.vertical,
-                      child: SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        child: Table(
-                          defaultColumnWidth:
-                              IntrinsicColumnWidth(), // Dynamic width
-                          border: TableBorder.all(
-                              color: const Color.fromARGB(255, 236, 236, 236)),
-                          children: [
-                            _buildTableHeader(), // The table header
-                            ..._filteredWorkHistory.map((work) {
-                              return TableRow(
-                                children: [
-                                  _buildTableCell(formatDate(work['date'])),
-                                  _buildTableCell(formatTime(work['checkedIn'])),
-                                  _buildTableCell(formatTime(work['checkedOut'])),
-                                  _buildTableCell(work['breakTime'] ?? 'N/A'),
-                                  _buildTableCell(work['totalTime'] ?? 'N/A'),
-                                  _buildTableCell(work['address'] ?? 'N/A'),
-                                ],
-                              );
-                            }).toList(),
-                          ],
-                        ),
-                      ),
-                    ),
-            ),
-            // DSAiFooter(),
-          ],
-        ),
-      ),
-    ));
-  }
-
   // Function to create table cells
   Widget _buildTableCell(String value) {
     return Container(
@@ -319,6 +202,145 @@ child: Scaffold(
       child: Text(
         value,
         textAlign: TextAlign.center,
+      ),
+    );
+  }
+
+  // Navigate to the next page
+  void _nextPage() {
+    if (_currentPage < _totalPages) {
+      setState(() {
+        _currentPage++;
+        _fetchWorkHistory();
+      });
+    }
+  }
+
+  // Navigate to the previous page
+  void _previousPage() {
+    if (_currentPage > 1) {
+      setState(() {
+        _currentPage--;
+        _fetchWorkHistory();
+      });
+    }
+  }
+
+  // Build pagination controls
+  Widget _buildPaginationControls() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        ElevatedButton(
+          onPressed: _currentPage > 1 ? _previousPage : null,
+          child: Text('Previous'),
+        ),
+        Text('Page $_currentPage of $_totalPages'),
+        ElevatedButton(
+          onPressed: _currentPage < _totalPages ? _nextPage : null,
+          child: Text('Next'),
+        ),
+      ],
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        // Pop all routes and navigate to HomePage
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (context) => HomePage()),
+          (Route<dynamic> route) => false, // Remove all routes
+        );
+      },
+      child: Scaffold(
+        appBar: DSAiAppBar(),
+        drawer: DSAiDrawer(),
+        body: AnimatedOpacity(
+          opacity: _opacity,
+          duration: const Duration(milliseconds: 500),
+          child: Column(
+            children: [
+              SizedBox(height: 10),
+              EmployeeCard(
+                employeeName: widget.employeeName,
+                position: widget.position,
+                employeeId: widget.employeeId,
+              ),
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      flex: 3,
+                      child: TextField(
+                        decoration: InputDecoration(
+                          prefixIcon: Icon(Icons.search),
+                          labelText: "Search by Company Name",
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(50),
+                          ),
+                        ),
+                        onChanged: (value) {
+                          setState(() {
+                            _filterCompanyName = value;
+                          });
+                          _applyFilters();
+                        },
+                      ),
+                    ),
+                    const SizedBox(width: 5),
+                    ElevatedButton.icon(
+                      onPressed: _pickDateRange,
+                      icon: const Icon(Icons.filter_list, color: Colors.white),
+                      label: const Text("Filter", style: TextStyle(color: Colors.white)),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF00B884),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 10),
+              _isLoading
+                  ? const Center(child: CircularProgressIndicator())
+                  : Expanded(
+                      child: SingleChildScrollView(
+                        scrollDirection: Axis.vertical,
+                        child: SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          child: Table(
+                            defaultColumnWidth: IntrinsicColumnWidth(),
+                            border: TableBorder.all(color: Colors.grey),
+                            children: [
+                              _buildTableHeader(),
+                              ..._filteredWorkHistory.map((work) {
+                                return TableRow(
+                                  children: [
+                                    _buildTableCell(formatDate(work['date'])),
+                                    _buildTableCell(formatTime(work['checkedIn'])),
+                                    _buildTableCell(formatTime(work['checkedOut'])),
+                                    _buildTableCell(work['breakTime'] ?? 'N/A'),
+                                    _buildTableCell(work['totalTime'] ?? 'N/A'),
+                                    _buildTableCell(work['address'] ?? 'N/A'),
+                                  ],
+                                );
+                              }).toList(),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+              const SizedBox(height: 10),
+              _buildPaginationControls(), // Pagination controls here
+              const SizedBox(height: 10),
+            ],
+          ),
+        ),
       ),
     );
   }

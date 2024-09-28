@@ -1,17 +1,10 @@
-import 'package:d_sai/SignUp.dart';
-import 'package:d_sai/UserDashboard.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:flutter/services.dart'; // Required for SystemNavigator.pop()
 import 'package:geolocator/geolocator.dart'; // For checking location services
-import 'DashboardLogin.dart';
-import 'ForgetID.dart';
-import 'GiveFeedback.dart';
+
 import 'HomePage.dart';
-import 'Login.dart';
-import 'QRScanner.dart';
-import 'Success.dart'; // File handling QR code scanning
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -77,7 +70,8 @@ void _showLocationServicesDialog() {
           ),
           TextButton(
             onPressed: () {
-              SystemNavigator.pop(); // Exit the app if the user doesn't enable location
+              SystemNavigator
+                  .pop(); // Exit the app if the user doesn't enable location
             },
             child: const Text('Exit'),
           ),
@@ -169,10 +163,15 @@ class _SplashScreenState extends State<SplashScreen> {
               width: 180,
               height: 180,
             ),
-            const SizedBox(height: 15,),
-            // const CircularProgressIndicator(color: Color(0xFF00B884) ,), 
-            
-          const SpinKitPouringHourGlass(color: Color(0xFF00B884), size: 100, )
+            const SizedBox(
+              height: 15,
+            ),
+            // const CircularProgressIndicator(color: Color(0xFF00B884) ,),
+
+            const SpinKitPouringHourGlass(
+              color: Color(0xFF00B884),
+              size: 100,
+            )
           ],
         ),
       ),

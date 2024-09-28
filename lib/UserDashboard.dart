@@ -37,6 +37,7 @@ class _UserDashboardState extends State<UserDashboard> {
   String userId = '';
   String companyName = '';
   String referencePerson = '';
+  //opacity for animation
   double _opacity = 0.0;
 
   @override
@@ -172,7 +173,7 @@ class _UserDashboardState extends State<UserDashboard> {
       setState(() {
         _isCheckedIn = true;
         _sliderPosition = maxWidth; // Set slider to the right end
-        _checkInTime = DateTime.now(); // Record check-in time
+        _checkInTime =now.toUtc(); // Record check-in time
         _startTimer(); // Start the timer when checked in
         _saveCheckInStatus(true, _checkInTime!.toIso8601String());
         showToast("Checked in successfully!");
