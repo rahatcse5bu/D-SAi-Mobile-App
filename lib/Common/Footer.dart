@@ -1,6 +1,9 @@
+import 'package:d_sai/HomePage.dart';
 import 'package:flutter/material.dart';
 
-Widget DSAiFooter() {
+import '../ContactUs.dart';
+
+Widget DSAiFooter(BuildContext context) {
   return Container(
     padding: EdgeInsets.symmetric(horizontal: 40, vertical: 20),
     child: SingleChildScrollView(
@@ -13,7 +16,13 @@ Widget DSAiFooter() {
             width: double.maxFinite,
             height: 60,
             child: ElevatedButton.icon(
-              onPressed: () => {},
+              onPressed: () => {
+                   Navigator.of(context).pushReplacement(
+                                    MaterialPageRoute(
+                                      builder: (context) => const ContactUs(),
+                                    ),
+                                  ),
+              },
               icon: const Icon(Icons.contact_emergency, color: Colors.white),
               label: const Text(
                 'Contact Us',

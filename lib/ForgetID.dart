@@ -115,7 +115,7 @@ void initState() {
   } ,
 child: Scaffold(
       appBar: DSAiAppBar(),
-      drawer: DSAiDrawer(),
+      // drawer: const DSAiDrawer(),
       backgroundColor: Colors.white,
       body: AnimatedOpacity(
         opacity: _opacity,
@@ -224,7 +224,11 @@ child: Scaffold(
                           width: double.infinity,
                           child: OutlinedButton(
                             onPressed: () {
-                              Navigator.pop(context);
+                              Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(builder: (context) => HomePage()),
+            (Route<dynamic> route) => false, // Remove all routes
+          );
                             },
                             style: OutlinedButton.styleFrom(
                               side: const BorderSide(color: Color(0xFF00B884)),
@@ -247,7 +251,7 @@ child: Scaffold(
                   const SizedBox(height: 20),
         
                   // Footer Text and Contact Us Button
-                  DSAiFooter(),
+                  DSAiFooter(context),
                 ],
               ),
             ),

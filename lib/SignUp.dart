@@ -25,7 +25,10 @@ class _SignUpPageState extends State<SignUpPage>
   bool isLoading = false;
   // Controllers for Client and Employee forms
   final TextEditingController companyNameController = TextEditingController();
+  final TextEditingController nameController = TextEditingController();
   final TextEditingController registrationNumberController =
+      TextEditingController();
+  final TextEditingController clientPhoneNumberController =
       TextEditingController();
   final TextEditingController addressController = TextEditingController();
   final TextEditingController mailIdController = TextEditingController();
@@ -64,7 +67,9 @@ class _SignUpPageState extends State<SignUpPage>
     final url = Uri.parse('https://dsaiqrbackend.vercel.app/api/v1/clients/');
     final payload = {
       'companyName': companyNameController.text,
+      'name': nameController.text,
       'registrationNumber': registrationNumberController.text,
+      'number': clientPhoneNumberController.text,
       'address': addressController.text,
       'restaurantMailId': mailIdController.text,
     };
@@ -175,7 +180,9 @@ class _SignUpPageState extends State<SignUpPage>
   // Function to clear Client form fields
   void _clearClientForm() {
     companyNameController.clear();
+    nameController.clear();
     registrationNumberController.clear();
+    clientPhoneNumberController.clear();
     addressController.clear();
     mailIdController.clear();
     _clientImage = null;
@@ -208,8 +215,8 @@ class _SignUpPageState extends State<SignUpPage>
           // return result.; // Indicate that the pop is handled
         },
         child: Scaffold(
-          appBar: DSAiAppBar(title: "D-SAi: Registration"),
-          drawer: DSAiDrawer(),
+          appBar: DSAiAppBar(),
+          // drawer: DSAiDrawer(),
           body: AnimatedOpacity(
             opacity: _opacity,
             duration: Duration(milliseconds: 500),
@@ -289,14 +296,20 @@ class _SignUpPageState extends State<SignUpPage>
       child: SingleChildScrollView(
         child: Column(
           children: [
-            _buildTextField('Company Name', companyNameController),
+         
+               _buildTextField('Name', nameController),
+            const SizedBox(height: 15),
+              _buildTextField('Company Name', companyNameController),
             const SizedBox(height: 15),
             _buildTextField(
                 'Registration Number', registrationNumberController),
             const SizedBox(height: 15),
+            _buildTextField(
+                'Phone Number', clientPhoneNumberController),
+            const SizedBox(height: 15),
             _buildTextField('Address', addressController),
             const SizedBox(height: 15),
-            _buildTextField('Mail ID', mailIdController),
+            _buildTextField('Email ID', mailIdController),
             const SizedBox(height: 15),
             _buildPictureUpload(isClient: true),
             const SizedBox(height: 20),

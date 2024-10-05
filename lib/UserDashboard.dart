@@ -172,7 +172,7 @@ class _UserDashboardState extends State<UserDashboard> {
     if (result) {
       setState(() {
         _isCheckedIn = true;
-        _sliderPosition = maxWidth; // Set slider to the right end
+        _sliderPosition = maxWidth-16; // Set slider to the right end
         _checkInTime =now.toUtc(); // Record check-in time
         _startTimer(); // Start the timer when checked in
         _saveCheckInStatus(true, _checkInTime!.toIso8601String());
@@ -236,7 +236,31 @@ class _UserDashboardState extends State<UserDashboard> {
             DateTime now = DateTime.now();
             String breakTime = '$selectedHours:$selectedMinutes';
             final prefs = await SharedPreferences.getInstance();
+    final localCheckInTimeStr = prefs.getString('checkInTime') ?? '';
+    // Parse the local check-in time (assumed to be stored in UTC ISO format)
+  DateTime localCheckInTime = DateTime.parse(localCheckInTimeStr).toUtc();
 
+  // Calculate the total worked time (difference between now and check-in)
+  Duration workedDuration = now.difference(localCheckInTime);
+
+  // Parse break time (HH:mm) into Duration
+  List<String> breakTimeParts = breakTime.split(':');
+  int breakHours = int.parse(breakTimeParts[0]);
+  int breakMinutes = int.parse(breakTimeParts[1]);
+  Duration breakDuration = Duration(hours: breakHours, minutes: breakMinutes);
+
+  // Check if break time is greater than or equal to worked time
+  if (breakDuration >= workedDuration) {
+    // Show snackbar if break time exceeds or equals working time
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text("Break time can't be greater than working time")),
+      
+    );
+    setState(() {
+        _sliderPosition = maxWidth-16; // Reset to the right for retry
+    });
+  } 
+  else{
             var result = await checkOutApiCall(now.toUtc().toIso8601String(), breakTime);
 
             if (result) {
@@ -249,18 +273,21 @@ class _UserDashboardState extends State<UserDashboard> {
               showToast("Checked out successfully!");
               _timer?.cancel(); // Stop the timer
               await _resetCheckInStatus(); // Reset the status and navigate to SuccessScreen
-            } else {
+            } 
+            
+             else {
               // Reset slider to the right
               setState(() {
-                _sliderPosition = maxWidth; // Reset to the right for retry
+                _sliderPosition = maxWidth-16; // Reset to the right for retry
               });
               showToast("Failed to check out.");
             }
+  }
           },
           onClose: () {
             // Reset the slider to the right without performing check-out
             setState(() {
-              _sliderPosition = maxWidth; // Reset slider back to the right
+              _sliderPosition = maxWidth-16; // Reset slider back to the right
             });
             Navigator.of(context).pop(); // Close the dialog
           },
@@ -383,21 +410,21 @@ class _UserDashboardState extends State<UserDashboard> {
           // Pop all routes and navigate to HomePage
           Navigator.pushAndRemoveUntil(
             context,
-            MaterialPageRoute(builder: (context) => HomePage()),
+            MaterialPageRoute(builder: (context) => const HomePage()),
             (Route<dynamic> route) => false, // Remove all routes
           );
         },
         child: Scaffold(
-          appBar: DSAiAppBar(title: "D-SAi QR Code System"),
-          drawer: DSAiDrawer(),
+          appBar: DSAiAppBar(),
+          // drawer: const DSAiDrawer(),
           backgroundColor: Colors.white,
           body: AnimatedOpacity(
             opacity: _opacity,
-            duration: Duration(milliseconds: 500),
+            duration: const Duration(milliseconds: 500),
             child: Center(
               child: SingleChildScrollView(
                 child: Container(
-                  padding: EdgeInsets.symmetric(horizontal: 20),
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
                   child: Column(
                     children: [
                       // Top icon/logo
@@ -407,7 +434,7 @@ class _UserDashboardState extends State<UserDashboard> {
                         decoration: BoxDecoration(
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(50),
-                          boxShadow: [
+                          boxShadow: const [
                             BoxShadow(
                               color: Colors.black12,
                               blurRadius: 10,
@@ -426,7 +453,7 @@ class _UserDashboardState extends State<UserDashboard> {
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(15),
                           boxShadow: [
-                            BoxShadow(
+                            const BoxShadow(
                               color: Colors.black12,
                               blurRadius: 10,
                               spreadRadius: 2,
@@ -452,7 +479,7 @@ class _UserDashboardState extends State<UserDashboard> {
                                 color: Colors.white,
                                 borderRadius: BorderRadius.circular(15),
                                 border: Border.all(color: Colors.grey.shade300),
-                                boxShadow: [
+                                boxShadow: const [
                                   BoxShadow(
                                     color: Colors.black12,
                                     blurRadius: 5,
@@ -555,9 +582,9 @@ class _UserDashboardState extends State<UserDashboard> {
                                   left: _sliderPosition,
                                   child: GestureDetector(
                                     onHorizontalDragUpdate: (details) =>
-                                        _onDragUpdate(details, maxWidth),
+                                        _onDragUpdate(details, maxWidth-16),
                                     onHorizontalDragEnd: (details) =>
-                                        _onDragEnd(maxWidth),
+                                        _onDragEnd(maxWidth-16),
                                     child: AnimatedContainer(
                                       duration:
                                           const Duration(milliseconds: 100),
@@ -590,7 +617,7 @@ class _UserDashboardState extends State<UserDashboard> {
                         ),
                       ),
                       // Footer
-                      DSAiFooter(),
+                      DSAiFooter(context),
                     ],
                   ),
                 ),
@@ -702,14 +729,14 @@ class _BreakTimeDialogState extends State<BreakTimeDialog> {
                   spacing: 10,
                   runSpacing: 10,
                   children: [
-                    _buildTimeButton(0),
-                    _buildTimeButton(5),
-                    _buildTimeButton(10),
+                  
                     _buildTimeButton(15),
                     _buildTimeButton(30),
-                    _buildTimeButton(45),
                     _buildTimeButton(60, label: '1 Hour'),
+                    _buildTimeButton(90, label: '1.5 Hours'),
                     _buildTimeButton(120, label: '2 Hours'),
+                    _buildTimeButton(180, label: '3 Hours'),
+                    _buildTimeButton(240, label: '4 Hours'),
                   ],
                 ),
                 const SizedBox(height: 15),

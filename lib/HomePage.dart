@@ -75,7 +75,7 @@ class _HomePageState extends State<HomePage> {
           Scaffold(
           backgroundColor: Colors.white,
           appBar: DSAiAppBar(),
-          drawer: DSAiDrawer(),
+          // drawer: const DSAiDrawer(),
           body: AnimatedOpacity(
             opacity: _opacity,
             duration: const Duration(milliseconds: 500),
@@ -187,7 +187,7 @@ class _HomePageState extends State<HomePage> {
                     const SizedBox(height: 30),
             
                     // Footer Text
-                    DSAiFooter(),
+                    DSAiFooter(context),
                   ],
                 ),
               ),

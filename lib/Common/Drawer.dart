@@ -19,7 +19,7 @@ class DSAiDrawer extends StatelessWidget {
           // Drawer Header with Logo and Slogan
           DrawerHeader(
             decoration: BoxDecoration(
-              color: const Color.fromARGB(255, 49, 87, 51), // Background color
+              color: const Color(0xFF00B884), // Background color
             ),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -27,7 +27,8 @@ class DSAiDrawer extends StatelessWidget {
               children: [
                 // Logo
                 Image.asset(
-                  'assets/logo.png',
+                  'assets/D_SAi_Logo.png',
+                  height: 80,
                 ),
                 const SizedBox(height: 10),
                 // Slogan
@@ -116,7 +117,7 @@ class DSAiDrawer extends StatelessWidget {
       child: ListTile(
         leading: Icon(
           icon,
-          color: Colors.green[800],
+          color: Color(0xFF00B884),
         ),
         title: Text(text, style: TextStyle(fontSize: 16),),
         trailing:

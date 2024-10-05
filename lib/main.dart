@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -134,18 +136,37 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen> {
+  double _progress = 0.0; // To store the progress value (0 to 1)
+  int _percentage = 0; // To store the percentage (1 to 100)
+
   @override
   void initState() {
     super.initState();
-    _navigateToQRScanner();
+    _startLoading(); // Start loading
   }
 
-  // Function to navigate to the QR scanner after a random delay
+  // Function to handle progress and navigation
+  void _startLoading() {
+    // Set a timer to increase the progress over time
+    Timer.periodic(const Duration(milliseconds: 50), (Timer timer) {
+      if (_percentage == 100) {
+        timer.cancel(); // Cancel the timer when loading is complete
+        _navigateToQRScanner(); // Navigate to next screen
+      } else {
+        setState(() {
+          _percentage += 1; // Increase percentage by 1
+          _progress = _percentage / 100; // Calculate progress as a fraction
+        });
+      }
+    });
+  }
+
+  // Function to navigate to the next page after the progress completes
   void _navigateToQRScanner() {
-    Future.delayed(Duration(seconds: 2 + (DateTime.now().millisecond % 3)), () {
+    Future.delayed(const Duration(milliseconds: 500), () {
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(
-          builder: (context) => const HomePage(),
+          builder: (context) => const HomePage(), // Navigate to HomePage
         ),
       );
     });
@@ -159,19 +180,33 @@ class _SplashScreenState extends State<SplashScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Image.asset(
-              'assets/D_SAi_Logo.png', // Logo at the center of splash screen
-              width: 180,
-              height: 180,
+              'assets/D_SAi_Logo.png', // Logo at the center of the splash screen
+              width: 110,
+              height: 110,
             ),
-            const SizedBox(
-              height: 15,
+            const SizedBox(height: 20),
+            
+            // Loading bar (linear progress indicator)
+            Container(
+              padding: EdgeInsetsDirectional.symmetric(horizontal: 40),
+              child: LinearProgressIndicator(
+                value: _progress, // Set the progress value (0.0 to 1.0)
+                minHeight: 8.0, // Set the height of the loading bar
+                backgroundColor: Colors.grey[300],
+                color: const Color(0xFF00B884), // Progress bar color
+              ),
             ),
-            // const CircularProgressIndicator(color: Color(0xFF00B884) ,),
+            const SizedBox(height: 20),
 
-            const SpinKitPouringHourGlass(
-              color: Color(0xFF00B884),
-              size: 100,
-            )
+            // Display the percentage as text
+            Text(
+              '$_percentage%', // Show the percentage (1 to 100)
+              style: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF00B884),
+              ),
+            ),
           ],
         ),
       ),

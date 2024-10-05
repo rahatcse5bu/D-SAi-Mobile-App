@@ -110,7 +110,7 @@ class _GiveFeedbackState extends State<GiveFeedback> {
   } ,
 child: Scaffold(
       appBar: DSAiAppBar(),
-      drawer: DSAiDrawer(),
+      // drawer: const DSAiDrawer(),
       backgroundColor: Colors.white,
       body: Center(
         child: SingleChildScrollView(
@@ -221,7 +221,7 @@ child: Scaffold(
                 const SizedBox(height: 10),
 
                 // Footer Text
-                 DSAiFooter(),
+                 DSAiFooter(context),
               ],
             ),
           ),

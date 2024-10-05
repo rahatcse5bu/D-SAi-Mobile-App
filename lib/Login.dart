@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:d_sai/SignUp.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -257,7 +258,7 @@ class _LoginState extends State<Login> {
         },
         child: Scaffold(
           appBar: DSAiAppBar(title: "D-SAi: ${widget.company}"),
-          drawer: DSAiDrawer(),
+          // drawer: DSAiDrawer(),
           resizeToAvoidBottomInset:
               true, // Ensures the layout adapts to the keyboard
           body: AnimatedOpacity(
@@ -283,7 +284,7 @@ class _LoginState extends State<Login> {
                                 Image.asset('assets/logo.png'),
                                 const SizedBox(height: 20),
                                 const Text(
-                                  "D-SAi QR CODE System",
+                                  "D-SAi QR Code System",
                                   style: TextStyle(
                                     fontSize: 24,
                                     fontWeight: FontWeight.bold,
@@ -334,12 +335,38 @@ class _LoginState extends State<Login> {
                               onPressed: _handleLogin,
                               child: const Text(
                                 "Login",
-                                style:
-                                    TextStyle(color: Colors.white, fontSize: 16),
+                                style: TextStyle(
+                                    color: Colors.white, fontSize: 16),
                               ),
                             ),
                           ),
+                          const SizedBox(
+                            height: 25,
+                          ),
                           SizedBox(
+                            width: double.infinity,
+                            height: 50,
+                            child: ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFF00B884),
+                              ),
+                              onPressed: () {
+                                Navigator.pushAndRemoveUntil(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) => const SignUpPage()),
+                                  (Route<dynamic> route) =>
+                                      false, // Remove all routes
+                                );
+                              },
+                              child: const Text(
+                                "Sign Up",
+                                style: TextStyle(
+                                    color: Colors.white, fontSize: 16),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(
                             height: 25,
                           ),
                           Row(
@@ -385,7 +412,7 @@ class _LoginState extends State<Login> {
                           ),
                           // Text(
                           //     "Company: "),
-                          DSAiFooter(), // Footer widget
+                          DSAiFooter(context), // Footer widget
                         ],
                       ),
                     ),

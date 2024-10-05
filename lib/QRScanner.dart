@@ -129,6 +129,8 @@ class _QRScannerPageState extends State<QRScannerPage> {
             controller: MobileScannerController(
               detectionSpeed: DetectionSpeed.noDuplicates,
             ),
+            hideGalleryButton: true,
+            hideGalleryIcon: true,
             onDetect: (BarcodeCapture capture) async {
               try {
                 // Check if barcodes list is not empty before accessing it
@@ -274,7 +276,7 @@ class _QRScannerPageState extends State<QRScannerPage> {
       },
       child: Scaffold(
         appBar: DSAiAppBar(),
-        drawer: DSAiDrawer(),
+        // drawer: DSAiDrawer(),
         resizeToAvoidBottomInset: true,
         body: AnimatedOpacity(
           opacity: _opacity,

@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:d_sai/SignUp.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -161,7 +162,7 @@ void initState() {
         },
         child: Scaffold(
           appBar: DSAiAppBar(),
-          drawer: DSAiDrawer(),
+          // drawer: DSAiDrawer(),
           resizeToAvoidBottomInset:
               true, // Ensures the layout adapts to the keyboard
           body: AnimatedOpacity( 
@@ -187,7 +188,7 @@ void initState() {
                                 Image.asset('assets/logo.png'),
                                 const SizedBox(height: 20),
                                 const Text(
-                                  "D-SAi QR CODE System",
+                                  "D-SAi QR Code System",
                                   style: TextStyle(
                                     fontSize: 24,
                                     fontWeight: FontWeight.bold,
@@ -243,7 +244,34 @@ void initState() {
                               ),
                             ),
                           ),
-                          DSAiFooter(), // Footer widget
+                          SizedBox(height: 10,),
+                                 SizedBox(
+                            width: double.infinity,
+                            height: 50,
+                            child: ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFF00B884),
+                              ),
+                              onPressed: () {
+                                Navigator.pushAndRemoveUntil(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) => const SignUpPage()),
+                                  (Route<dynamic> route) =>
+                                      false, // Remove all routes
+                                );
+                              },
+                              child: const Text(
+                                "Sign Up",
+                                style: TextStyle(
+                                    color: Colors.white, fontSize: 16),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(
+                            height: 25,
+                          ),
+                          DSAiFooter(context), // Footer widget
                         ],
                       ),
                     ),

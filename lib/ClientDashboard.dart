@@ -122,8 +122,8 @@ class _ClientDashboardState extends State<ClientDashboard> {
           );
         },
         child: Scaffold(
-          appBar: DSAiAppBar(title: "Client Dashboard - ${widget.userName}"),
-          drawer: DSAiDrawer(),
+          appBar: DSAiAppBar(title: " ${widget.userName}"),
+          // drawer: DSAiDrawer(),
           body: _isLoading
               ? const Center(
                   child:
@@ -133,7 +133,7 @@ class _ClientDashboardState extends State<ClientDashboard> {
                       opacity: _opacity,
                       duration: const Duration(milliseconds: 500),
                       child: const Center(
-                          child: Text("No employee data found.",
+                          child: Text("No client data found.",
                               style: TextStyle(fontSize: 16))),
                     )
                   : AnimatedOpacity(

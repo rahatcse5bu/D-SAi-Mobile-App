@@ -124,7 +124,7 @@ class ClientDashboard extends StatelessWidget {
               const SizedBox(height: 20),
 
               // Footer Text and Contact Us Button
-           DSAiFooter(),
+           DSAiFooter(context),
             ],
           ),
         ),

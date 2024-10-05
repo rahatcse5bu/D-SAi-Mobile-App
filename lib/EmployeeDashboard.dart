@@ -257,8 +257,8 @@ class _EmployeeDashboardState extends State<EmployeeDashboard> {
         );
       },
       child: Scaffold(
-        appBar: DSAiAppBar(),
-        drawer: DSAiDrawer(),
+        appBar: DSAiAppBar(title:widget.employeeName),
+        // drawer: const DSAiDrawer(),
         body: AnimatedOpacity(
           opacity: _opacity,
           duration: const Duration(milliseconds: 500),
