@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
+import 'package:get/get.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:flutter/services.dart'; // Required for SystemNavigator.pop()
 import 'package:geolocator/geolocator.dart'; // For checking location services
@@ -120,7 +121,7 @@ class MyApp extends StatelessWidget {
       splitScreenMode: true,
       // Use builder only if you need to use library outside ScreenUtilInit context
       builder: (_ , child) {
-        return MaterialApp(
+        return GetMaterialApp(
       navigatorKey: navigatorKey, // Set the global navigator key
       debugShowCheckedModeBanner: false,
       home: const SplashScreen(),

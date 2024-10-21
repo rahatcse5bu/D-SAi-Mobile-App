@@ -1,5 +1,8 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:get/get.dart';
 import 'dart:async';
 import 'package:lottie/lottie.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -39,7 +42,7 @@ class _UserDashboardState extends State<UserDashboard> {
   String userName = '';
   String userId = '';
   String companyName = '';
- 
+  RxDouble mainWidth= Get.width.obs;
   String referencePerson = '';
   //opacity for animation
   double _opacity = 0.0;
@@ -99,7 +102,7 @@ class _UserDashboardState extends State<UserDashboard> {
           _isCheckedIn = true;
           _isCheckedOut = false;
           _checkInTime = DateTime.parse(checkInTimeStr); // Safely parse the date
-          _sliderPosition = maxWidth - 10; // Set slider to the rightmost position
+          _sliderPosition = mainWidth.value - 60; // Set slider to the rightmost position
           _startTimer(); // Start the timer
         });
       } catch (e) {
@@ -147,9 +150,12 @@ class _UserDashboardState extends State<UserDashboard> {
   void _onDragUpdate(DragUpdateDetails details, double maxWidth) {
     setState(() {
       _sliderPosition += details.delta.dx;
-
+log("positoon: ${details.delta.dx}");
+log("_sliderPosition: ${_sliderPosition}");
+log("total width: ${Get.width-60}");
       // Ensure that the slider is within bounds
-      _sliderPosition = _sliderPosition.clamp(0.0, maxWidth-12);
+      // _sliderPosition = _sliderPosition.clamp(0.0, maxWidth-12);
+      _sliderPosition = _sliderPosition.clamp(0.0, maxWidth-60);
     });
   }
 
@@ -162,7 +168,7 @@ class _UserDashboardState extends State<UserDashboard> {
     } else {
       // Reset slider if swipe was insufficient
       setState(() {
-        _sliderPosition = _isCheckedIn ? maxWidth-12 : 0.0;
+        _sliderPosition = _isCheckedIn ? maxWidth-60 : 0.0;
       });
     }
   }
@@ -176,7 +182,7 @@ class _UserDashboardState extends State<UserDashboard> {
     if (result) {
       setState(() {
         _isCheckedIn = true;
-        _sliderPosition = maxWidth-12; // Set slider to the right end
+        _sliderPosition = maxWidth-60; // Set slider to the right end
         _checkInTime =now.toUtc(); // Record check-in time
         _startTimer(); // Start the timer when checked in
         _saveCheckInStatus(true, _checkInTime!.toIso8601String());
@@ -184,7 +190,7 @@ class _UserDashboardState extends State<UserDashboard> {
       });
     } else {
        setState(() {
-      _sliderPosition = 0; // Set slider to the right end
+      _sliderPosition = 0; // Set slider to the left end
        });
       showToast("Failed to check in.");
     }
@@ -264,7 +270,7 @@ class _UserDashboardState extends State<UserDashboard> {
       
     );
     setState(() {
-        _sliderPosition = maxWidth-12; // Reset to the right for retry
+        _sliderPosition = mainWidth.value-60; // Reset to the right for retry
     });
   } 
   else{
@@ -285,7 +291,7 @@ class _UserDashboardState extends State<UserDashboard> {
              else {
               // Reset slider to the right
               setState(() {
-                _sliderPosition = maxWidth-12; // Reset to the right for retry
+                _sliderPosition = mainWidth.value-60; // Reset to the right for retry
               });
               showToast("Failed to check out.");
             }
@@ -294,7 +300,8 @@ class _UserDashboardState extends State<UserDashboard> {
           onClose: () {
             // Reset the slider to the right without performing check-out
             setState(() {
-              _sliderPosition = maxWidth-12; // Reset slider back to the right
+              // _sliderPosition = maxWidth-12; // Reset slider back to the right
+              _sliderPosition = mainWidth.value-60; // Reset slider back to the right
             });
             Navigator.of(context).pop(); // Close the dialog
           },
@@ -460,215 +467,231 @@ class _UserDashboardState extends State<UserDashboard> {
                       ),
                       DSAiAppBar2(context: context),
                       SizedBox(height:15.h),
-                    SingleChildScrollView(
-                      child: Container(
-                        padding:  EdgeInsets.symmetric(horizontal: 20.w),
-                        child: Column(
-                          
-                          children: [
-                         
-                            // Top icon/logo
-                            Container(
-                              margin:  EdgeInsets.only(top: 20, bottom: 5.h),
-                              padding: const EdgeInsets.all(20),
-                              decoration: BoxDecoration(
-                                color: Colors.transparent,
-                                borderRadius: BorderRadius.circular(50),
-                                // boxShadow: const [
-                                //   BoxShadow(
-                                //     color: Colors.black12,
-                                //     blurRadius: 10,
-                                //     spreadRadius: 2,
-                                //   ),
-                                // ],
-                              ),
-                              child: Lottie.asset('assets/lotties/shake-hand.json',
-                              height: 50.h ,
-                              width: 50.h ,
-                              )
-                              // Image.asset("assets/logo.png"),
-                            ),
+                    Center(
+                      child: SingleChildScrollView(
+                        child: Container(
+                          // color: Colors.red, 
+                          padding:  EdgeInsets.symmetric(horizontal: 20.w),
+                          child: Column(
                             
-                    
-                            // User Info Section
-                            Container(
-                              width: screenWidth < 600 ? screenWidth * 1 : 380,
-                              padding: const EdgeInsets.all(20),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(15),
-                                // boxShadow: [
-                                //   const BoxShadow(
-                                //     color: Colors.black12,
-                                //     blurRadius: 10,
-                                //     spreadRadius: 2,
-                                //   ),
-                                // ],
+                            children: [
+                           
+                              // Top icon/logo
+                              Container(
+                                margin:  EdgeInsets.only(top: 20, bottom: 5.h),
+                                padding: const EdgeInsets.all(20),
+                                decoration: BoxDecoration(
+                                  color: Colors.transparent,
+                                  borderRadius: BorderRadius.circular(50),
+                                  // boxShadow: const [
+                                  //   BoxShadow(
+                                  //     color: Colors.black12,
+                                  //     blurRadius: 10,
+                                  //     spreadRadius: 2,
+                                  //   ),
+                                  // ],
+                                ),
+                                child: Lottie.asset('assets/lotties/shake-hand.json',
+                                height: 50.h ,
+                                width: 50.h ,
+                                )
+                                // Image.asset("assets/logo.png"),
                               ),
-                              child: Column(
-                                children: [
-                                  Text(
-                                    userName.toUpperCase(),
-                                    style:  TextStyle(
-                                      fontSize: 13.sp,
-                                      fontWeight: FontWeight.bold,
-                                      color: Color(0xFF00B884),
-                                    ),
-                                  ),
-                                   SizedBox(height: 10.h),
-                    
-                                  // Profile Card
-                                  Container(
-                                    padding: const EdgeInsets.all(10),
-                                    decoration: BoxDecoration(
-                                      color: Colors.white,
-                                      borderRadius: BorderRadius.circular(15),
-                                      border: Border.all(color: Colors.grey.shade300),
-                                      boxShadow: const [
-                                        BoxShadow(
-                                          color: Colors.black12,
-                                          blurRadius: 5,
-                                          spreadRadius: 1,
-                                        ),
-                                      ],
-                                    ),
-                                    child: Row(
-                                      children: [
-                                        CircleAvatar(
-                                          backgroundColor: Colors.grey[300],
-                                          child: userName.isNotEmpty
-                                              ? Text(userName[0])
-                                              : Icon(Icons.person),
-                                        ),
-                                        const SizedBox(width: 10),
-                                        Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            Text(
-                                              userName,
-                                              style: const TextStyle(
-                                                fontSize: 16,
-                                                fontWeight: FontWeight.bold,
-                                              ),
-                                            ),
-                                            Text(
-                                              'UID $userId',
-                                              style: const TextStyle(
-                                                fontSize: 12,
-                                                color: Colors.black54,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                   SizedBox(height: 10.h),
-                                  Stack(
-                                    children: [
-                                      Image.asset(
-                                        'assets/clock.png',
-                                        height: 120, 
-                    
-                                      ),
-                                      Positioned(
-                                        top: 25,
-                                        left: -45,
-                                        child: Lottie.asset(
-                                          'assets/lotties/clock.json',
-                                          width: 200,
-                                          height: 90,
-                                          fit: BoxFit.contain,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                 
-                    
-                                 SizedBox(height: 10.h),
-                    
-                                  // Display countdown timer
-                                  Visibility(
-                                    visible: _isCheckedIn,
-                                    child: Text(
-                                      _formatElapsedTime(),
+                              
+                                              
+                              // User Info Section
+                              Container(
+                                // width: screenWidth < 600 ? screenWidth * 1 : 380,
+                                // padding: const EdgeInsets.all(20),
+                                decoration: BoxDecoration(
+                                  // color: Colors.yellow,
+                                  borderRadius: BorderRadius.circular(15),
+                                  // boxShadow: [
+                                  //   const BoxShadow(
+                                  //     color: Colors.black12,
+                                  //     blurRadius: 10,
+                                  //     spreadRadius: 2,
+                                  //   ),
+                                  // ],
+                                ),
+                                child: Column(
+                                  children: [
+                                    Text(
+                                      userName.toUpperCase(),
                                       style:  TextStyle(
-                                        fontSize: 30.sp,
+                                        fontSize: 13.sp,
                                         fontWeight: FontWeight.bold,
                                         color: Color(0xFF00B884),
                                       ),
                                     ),
-                                  ),
-                                   SizedBox(height: 15.h),
-                    
-                                  // Custom Sliding Check-In / Check-Out Button
-                                  Stack(
-                                    children: [
-                                      Container(
-                                        height: 60,
-                                        width: double.infinity,
-                                        decoration: BoxDecoration(
-                                          color: const Color(0xFF00B884)
-                                              .withOpacity(0.2),
-                                          borderRadius: BorderRadius.circular(30),
+                                     SizedBox(height: 10.h),
+                                              
+                                    // Profile Card
+                                    Container(
+                                      padding: const EdgeInsets.all(10),
+                                      decoration: BoxDecoration(
+                                        color: Colors.white,
+                                        borderRadius: BorderRadius.circular(15),
+                                        border: Border.all(color: Colors.grey.shade300),
+                                        boxShadow: const [
+                                          BoxShadow(
+                                            color: Colors.black12,
+                                            blurRadius: 5,
+                                            spreadRadius: 1,
+                                          ),
+                                        ],
+                                      ),
+                                      child: Row(
+                                        children: [
+                                          CircleAvatar(
+                                            backgroundColor: Colors.grey[300],
+                                            child: userName.isNotEmpty
+                                                ? Text(userName[0])
+                                                : Icon(Icons.person),
+                                          ),
+                                          const SizedBox(width: 10),
+                                          Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                userName,
+                                                style: const TextStyle(
+                                                  fontSize: 16,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
+                                              Text(
+                                                'UID $userId',
+                                                style: const TextStyle(
+                                                  fontSize: 12,
+                                                  color: Colors.black54,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                     SizedBox(height: 10.h),
+                                    Stack(
+                                      children: [
+                                        Image.asset(
+                                          'assets/clock.png',
+                                          height: 120, 
+                                              
                                         ),
-                                        child: Row(
-                                          mainAxisAlignment: MainAxisAlignment.center,
+                                        Positioned(
+                                          top: 25,
+                                          left: -45,
+                                          child: Lottie.asset(
+                                            'assets/lotties/clock.json',
+                                            width: 200,
+                                            height: 90,
+                                            fit: BoxFit.contain,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                   
+                                              
+                                   SizedBox(height: 10.h),
+                                              
+                                    // Display countdown timer
+                                    Visibility(
+                                      visible: _isCheckedIn,
+                                      child: Text(
+                                        _formatElapsedTime(),
+                                        style:  TextStyle(
+                                          fontSize: 30.sp,
+                                          fontWeight: FontWeight.bold,
+                                          color: Color(0xFF00B884),
+                                        ),
+                                      ),
+                                    ),
+                                     SizedBox(height: 15.h),
+                                              
+                                    // Custom Sliding Check-In / Check-Out Button
+                                    LayoutBuilder(
+                                      builder: (context, constraints) {
+                                     
+                                          mainWidth.value=constraints.maxWidth;
+                                      
+                                        // double parentWidth = constraints.maxWidth;
+                                      return Container(
+                                        // color: Colors.green,
+                                        child: Stack(
                                           children: [
-                                            Text(
-                                              _isCheckedIn && !_isCheckedOut
-                                                  ? ' Swipe to Check Out'
-                                                  : ' Swipe to Check In',
-                                              style: TextStyle(
-                                                  color: Colors.black,
-                                                  fontSize: 15,
-                                                  fontWeight: FontWeight.bold),
+                                            // SizedBox(height: 200,),
+                                            // Text("test ${constraints.maxWidth}"),
+                                            Container(
+                                              height: 60,
+                                              width: double.infinity,
+                                              decoration: BoxDecoration(
+                                                color: const Color(0xFF00B884)
+                                                    .withOpacity(0.2),
+                                                borderRadius: BorderRadius.circular(30),
+                                              ),
+                                              child: Row(
+                                                mainAxisAlignment: MainAxisAlignment.center,
+                                                children: [
+                                                  Text(
+                                                    _isCheckedIn && !_isCheckedOut
+                                                        ? ' Swipe to Check Out'
+                                                        : ' Swipe to Check In',
+                                                    style: TextStyle(
+                                                        color: Colors.black,
+                                                        fontSize: 15,
+                                                        fontWeight: FontWeight.bold),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                            // Text("${mainWidth.value}"),
+                                            Positioned(
+                                              left: _sliderPosition,
+                                              child: GestureDetector(
+                                                onHorizontalDragUpdate: (details) =>
+                                                    _onDragUpdate(details,mainWidth.value),
+                                                onHorizontalDragEnd: (details) =>
+                                                    _onDragEnd(mainWidth.value),
+                                                child: AnimatedContainer(
+                                                  duration:
+                                                      const Duration(milliseconds: 100),
+                                                  height: 60,
+                                                  width: 60,
+                                                  decoration: BoxDecoration(
+                                                    color: const Color(0xFF00B884),
+                                                    borderRadius: BorderRadius.circular(50),
+                                                    boxShadow: [
+                                                      BoxShadow(
+                                                        color: Colors.black26,
+                                                        blurRadius: 5,
+                                                        spreadRadius: 1,
+                                                      ),
+                                                    ],
+                                                  ),
+                                                  child: Icon(
+                                                    _isCheckedIn && !_isCheckedOut
+                                                        ? Icons.chevron_left
+                                                        : Icons.chevron_right,
+                                                    color: Colors.white,
+                                                    size: 30,
+                                                  ),
+                                                ),
+                                              ),
                                             ),
                                           ],
                                         ),
-                                      ),
-                                      Positioned(
-                                        left: _sliderPosition,
-                                        child: GestureDetector(
-                                          onHorizontalDragUpdate: (details) =>
-                                              _onDragUpdate(details, maxWidth-10),
-                                          onHorizontalDragEnd: (details) =>
-                                              _onDragEnd(maxWidth-10),
-                                          child: AnimatedContainer(
-                                            duration:
-                                                const Duration(milliseconds: 100),
-                                            height: 60,
-                                            width: 60,
-                                            decoration: BoxDecoration(
-                                              color: const Color(0xFF00B884),
-                                              borderRadius: BorderRadius.circular(50),
-                                              boxShadow: [
-                                                BoxShadow(
-                                                  color: Colors.black26,
-                                                  blurRadius: 5,
-                                                  spreadRadius: 1,
-                                                ),
-                                              ],
-                                            ),
-                                            child: Icon(
-                                              _isCheckedIn && !_isCheckedOut
-                                                  ? Icons.chevron_left
-                                                  : Icons.chevron_right,
-                                              color: Colors.white,
-                                              size: 30,
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ],
+                                      );},
+                                    ),
+                                  ],
+                                ),
                               ),
-                            ),
-                            // Footer
-                            DSAiFooter(context),
-                          ],
+                              // Footer
+                              DSAiFooter(context),
+                            ],
+                          ),
                         ),
                       ),
                     ),

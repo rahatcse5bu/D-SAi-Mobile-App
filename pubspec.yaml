@@ -25,6 +25,7 @@ dependencies:
   path_provider: ^2.1.4
   qr_flutter: ^4.1.0
   screenshot: ^3.0.0
+  get: ^4.6.6
 
 
 dev_dependencies:
