@@ -8,6 +8,7 @@ import 'package:d_sai/QRScanner.dart';
 import 'package:d_sai/SignUp.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:lottie/lottie.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -23,16 +24,17 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   double _opacity = 0.0;
-  @override 
+  @override
   void initState() {
     super.initState();
-        Future.delayed(const Duration(milliseconds: 500), () {
+    Future.delayed(const Duration(milliseconds: 500), () {
       setState(() {
         _opacity = 1.0; // Fade in after 500ms
       });
     });
     _loadCheckInStatusAndRedirect();
   }
+
   Future<void> _loadCheckInStatusAndRedirect() async {
     final prefs = await SharedPreferences.getInstance();
     final isCheckedIn = prefs.getBool('isCheckedIn') ?? false;
@@ -55,148 +57,169 @@ class _HomePageState extends State<HomePage> {
     final double screenWidth = MediaQuery.of(context).size.width;
 
     return PopScope(
-      canPop: false,
-      onPopInvokedWithResult: (didPop, result) async {
-        bool shouldExit = await _showExitConfirmationDialog(context);
-        if (shouldExit) {
-          // Exit the app
-          if (Platform.isAndroid) {
-            SystemNavigator.pop(); // Minimize app on Android
-          } else if (Platform.isIOS) {
-            exit(0); // Close app for iOS
+        canPop: false,
+        onPopInvokedWithResult: (didPop, result) async {
+          bool shouldExit = await _showExitConfirmationDialog(context);
+          if (shouldExit) {
+            // Exit the app
+            if (Platform.isAndroid) {
+              SystemNavigator.pop(); // Minimize app on Android
+            } else if (Platform.isIOS) {
+              exit(0); // Close app for iOS
+            }
           }
-        }
-        // Return null to prevent popping the page unless the user confirms
-        return null;
-      },
-      child:Stack(
-        children: [
-          
-          Scaffold(
-          backgroundColor: Colors.white,
-          appBar: DSAiAppBar(),
-          // drawer: const DSAiDrawer(),
-          body: AnimatedOpacity(
-            opacity: _opacity,
-            duration: const Duration(milliseconds: 500),
-            child: SafeArea(
-              child: SingleChildScrollView(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  children: [
-                    // Logo Section
-                      
-                    Container(
-                      margin: const EdgeInsets.only(top: 10),
-                      child: Column(
-            
-                        children: [
-                      
-                          Image.asset(
-                            'assets/logo.png',
-                            width: 100, // Adjust width based on your design
-                            // height: 100, // Adjust height based on your design
-                          ),
-                          const SizedBox(height: 10),
-                          const Text(
-                            'D-SAi QR Code System',
-                            style: TextStyle(
-                              fontSize: 20, // Adjusted to smaller font size
-                              fontWeight: FontWeight.bold,
-                              color: Color(0xFF00B884),
+          // Return null to prevent popping the page unless the user confirms
+          return null;
+        },
+        child: SafeArea(
+          child: Scaffold(
+            backgroundColor: Colors.white,
+            // appBar: DSAiAppBar(),
+            // drawer: const DSAiDrawer(),
+            body: AnimatedOpacity(
+              opacity: _opacity,
+              duration: const Duration(milliseconds: 500),
+              child: Stack(
+                children: [
+                  Positioned(
+                      top: 0,
+                      left: 0,
+                      right: 0,
+                      child: Image.asset(
+                        'assets/top.png',
+                        fit: BoxFit.cover,
+                        width: screenWidth,
+                      )),
+                  Positioned(
+                      bottom: 0,
+                      left: 0,
+                      right: 0,
+                      child: Image.asset(
+                        'assets/bottom.png',
+                        fit: BoxFit.cover,
+                        width: screenWidth,
+                      )),
+                  Column(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      // Logo Section
+                  
+                      Container(
+                        margin: const EdgeInsets.only(top: 10),
+                        child: Column(
+                          children: [
+                            Image.asset(
+                              'assets/logo.png',
+                              width: 100.w, // Adjust width based on your design
+                              // height: 100, // Adjust height based on your design
                             ),
-                          ),
-                        ],
+                             SizedBox(height: 10.h),
+                            const Text(
+                              'D-SAi QR Code System',
+                              style: TextStyle(
+                                fontSize: 20, // Adjusted to smaller font size
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF00B884),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-            
-                    const SizedBox(height: 35),
-            
-                    // Buttons Section with Lottie animations
-                    Container(
-                      width: screenWidth < 600 ? screenWidth * 0.9 : 400,
-                      child: Column(
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                            children: [
-                              // Login Button with Lottie animation
-                              _buildActionButton(
-                                context: context,
-                                title: 'Login',
-                                lottieFile: 'assets/lotties/loginAnimation.json',
-                                onPressed: () {
-                                  Navigator.of(context).pushReplacement(
-                                    MaterialPageRoute(
-                                      builder: (context) => const DashboardLogin(),
-                                    ),
-                                  );
-                                },
-                              ),
-                              // Sign Up Button with Lottie animation
-                              _buildActionButton(
-                                context: context,
-                                title: 'Sign Up',
-                                lottieFile: 'assets/lotties/signup.json',
-                                onPressed: () {
-                                  Navigator.of(context).pushReplacement(
-                                    MaterialPageRoute(
-                                      builder: (context) => const SignUpPage(),
-                                    ),
-                                  );
-                                },
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 20),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                            children: [
-                              // QR Code Scan Button with Lottie animation
-                              _buildActionButton(
-                                context: context,
-                                title: 'QR Code Scan',
-                                lottieFile: 'assets/lotties/scan-qr.json',
-                                onPressed: () {
-                                  Navigator.of(context).pushReplacement(
-                                    MaterialPageRoute(
-                                      builder: (context) => const QRScannerPage(),
-                                    ),
-                                  );
-                                },
-                              ),
-                              // Forget Password Button with Lottie animation
-                              _buildActionButton(
-                                context: context,
-                                title: 'Forget Password',
-                                lottieFile: 'assets/lotties/forget-id.json',
-                                onPressed: () {
-                                  Navigator.of(context).pushReplacement(
-                                    MaterialPageRoute(
-                                      builder: (context) => const ForgetID(),
-                                    ),
-                                  );
-                                },
-                              ),
-                            ],
-                          ),
-                        ],
+                  
+                       SizedBox(height: 30.h),
+                  
+                      // Buttons Section with Lottie animations
+                      Container(
+                        width: screenWidth < 600 ? screenWidth * 0.9 : 400,
+                        child: Column(
+                          children: [
+                            Row(
+                              mainAxisAlignment:
+                                  MainAxisAlignment.spaceEvenly,
+                              children: [
+                                // Login Button with Lottie animation
+                                _buildActionButton(
+                                  context: context,
+                                  title: 'Login',
+                                  lottieFile:
+                                      'assets/lotties/loginAnimation.json',
+                                  onPressed: () {
+                                    Navigator.of(context).pushReplacement(
+                                      MaterialPageRoute(
+                                        builder: (context) =>
+                                            const DashboardLogin(),
+                                      ),
+                                    );
+                                  },
+                                ),
+                                // Sign Up Button with Lottie animation
+                                _buildActionButton(
+                                  context: context,
+                                  title: 'Sign Up',
+                                  lottieFile: 'assets/lotties/signup.json',
+                                  onPressed: () {
+                                    Navigator.of(context).pushReplacement(
+                                      MaterialPageRoute(
+                                        builder: (context) =>
+                                            const SignUpPage(),
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ],
+                            ),
+                             SizedBox(height: 15.h),
+                            Row(
+                              mainAxisAlignment:
+                                  MainAxisAlignment.spaceEvenly,
+                              children: [
+                                // QR Code Scan Button with Lottie animation
+                                _buildActionButton(
+                                  context: context,
+                                  title: 'QR Code Scan',
+                                  lottieFile: 'assets/lotties/scan-qr.json',
+                                  onPressed: () {
+                                    Navigator.of(context).pushReplacement(
+                                      MaterialPageRoute(
+                                        builder: (context) =>
+                                            const QRScannerPage(),
+                                      ),
+                                    );
+                                  },
+                                ),
+                                // Forget Password Button with Lottie animation
+                                _buildActionButton(
+                                  context: context,
+                                  title: 'Forget Password',
+                                  lottieFile: 'assets/lotties/forget-id.json',
+                                  onPressed: () {
+                                    Navigator.of(context).pushReplacement(
+                                      MaterialPageRoute(
+                                        builder: (context) =>
+                                            const ForgetID(),
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-            
-                    const SizedBox(height: 30),
-            
-                    // Footer Text
-                    DSAiFooter(context),
-                  ],
-                ),
+                  
+                       SizedBox(height: 20.h),
+                  
+                      // Footer Text
+                      DSAiFooter(context),
+                    ],
+                  ),
+                ],
               ),
             ),
           ),
-              ),
-        ],
-      ));
+        ));
   }
+
   // Show a confirmation dialog when the user presses the back button
   Future<bool> _showExitConfirmationDialog(BuildContext context) async {
     return await showDialog<bool>(
@@ -206,11 +229,13 @@ class _HomePageState extends State<HomePage> {
             content: Text('Do you really want to exit the app?'),
             actions: [
               TextButton(
-                onPressed: () => Navigator.of(context).pop(false), // User chose not to exit
+                onPressed: () =>
+                    Navigator.of(context).pop(false), // User chose not to exit
                 child: Text('No'),
               ),
               TextButton(
-                onPressed: () => Navigator.of(context).pop(true), // User chose to exit
+                onPressed: () =>
+                    Navigator.of(context).pop(true), // User chose to exit
                 child: Text('Yes'),
               ),
             ],
@@ -218,6 +243,7 @@ class _HomePageState extends State<HomePage> {
         ) ??
         false; // Return false if the dialog is dismissed without selecting an option
   }
+
   // Helper function to create buttons with Lottie animations and text
   Widget _buildActionButton({
     required BuildContext context,
@@ -226,8 +252,8 @@ class _HomePageState extends State<HomePage> {
     required VoidCallback onPressed,
   }) {
     return Container(
-      width: 150, // Width for each button
-      height: 160, // Height for each button
+      width: 150.w, // Width for each button
+      height: 160.h, // Height for each button
       child: ElevatedButton(
         onPressed: onPressed,
         style: ElevatedButton.styleFrom(
@@ -246,20 +272,20 @@ class _HomePageState extends State<HomePage> {
           children: [
             Lottie.asset(
               lottieFile,
-              width: 100, // Adjust the size as per your design
+              width: 100.w, // Adjust the size as per your design
               // height: 125,
             ),
-            const SizedBox(height: 10),
+             SizedBox(height: 10.h),
             Text(
               title,
-              style: const TextStyle(
-                fontSize: 13, // Text size
+              style:  TextStyle(
+                fontSize: 13.sp, // Text size
                 color: Colors.black, // Text color
                 fontWeight: FontWeight.bold, // Text weight
               ),
             ),
             SizedBox(
-              height: 8,
+              height: 8.h,
             )
           ],
         ),

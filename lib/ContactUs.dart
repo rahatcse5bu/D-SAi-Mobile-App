@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:http/http.dart' as http;
 import 'package:fluttertoast/fluttertoast.dart';
 import 'dart:convert';
 
 import 'Common/AppBar.dart';
+import 'Common/AppBarAlt.dart';
 import 'Common/Drawer.dart';
 import 'Common/Footer.dart';
 import 'HomePage.dart';
@@ -108,150 +110,180 @@ class _ContactUsState extends State<ContactUs> {
           );
           // return result.; // Indicate that the pop is handled
         },
-        child: Scaffold(
-          appBar: DSAiAppBar(),
-          // drawer: const DSAiDrawer(),
-          backgroundColor: Colors.white,
-          body: Center(
-            child: SingleChildScrollView(
-              child: Container(
-                width: screenWidth < 600
-                    ? screenWidth * 0.9
-                    : 400, // Responsive width
-                padding:
-                    const EdgeInsets.symmetric(vertical: 20, horizontal: 25),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(15),
-                  boxShadow: const [
-                    BoxShadow(
-                      color: Colors.black12,
-                      blurRadius: 10,
-                      spreadRadius: 2,
-                    ),
-                  ],
-                ),
-                child: Column(
+        child: SafeArea(
+          child: Scaffold(
+            // appBar: DSAiAppBar(),
+            // drawer: const DSAiDrawer(),
+            backgroundColor: Colors.white,
+            body: Stack(
+              children: [
+                     Positioned(
+                      top: 0,
+                      left: 0,
+                      right: 0,
+                      child: Image.asset(
+                        'assets/top.png',
+                        fit: BoxFit.cover,
+                        width: screenWidth,
+                      )),
+                  Positioned(
+                      bottom: 0,
+                      left: 0,
+                      right: 0,
+                      child: Image.asset(
+                        'assets/bottom.png',
+                        fit: BoxFit.cover,
+                        width: screenWidth,
+                      )),
+                Column(
                   children: [
-                    // Top icon/logo
-                    Image.asset('assets/logo_alt.png'),
-                    const SizedBox(height: 5),
-                    const Text(
-                      'Contact Form',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF00B884),
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-
-                    // Name Input
-                    TextFormField(
-                      controller: nameController,
-                      decoration: InputDecoration(
-                        labelText: 'Name',
-                        hintText: 'Your name',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 15),
-
-                    // Email Input
-                    TextFormField(
-                      controller: emailController,
-                      decoration: InputDecoration(
-                        labelText: 'Email',
-                        hintText: 'Your email',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 15),
-
-                    // Feedback Input
-                    TextFormField(
-                      controller: feedbackController,
-                      maxLines: 4,
-                      decoration: InputDecoration(
-                        labelText: 'Message',
-                        hintText: 'Your Message Here',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-
-                    // Back and Submit Buttons
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        ElevatedButton(
-                          onPressed: () {
-                            // Navigator.pop(context);
-                            Navigator.pushAndRemoveUntil(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) => HomePage()),
-                              (Route<dynamic> route) =>
-                                  false, // Remove all routes
-                            );
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Color.fromARGB(255, 0, 0, 0),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                          ),
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(
-                                vertical: 12, horizontal: 20),
-                            child: Text(
-                              'Back',
-                              style: TextStyle(
-                                  fontSize: 16, color: Colors.white),
-                            ),
-                          ),
-                        ),
-                        Flexible(
-                            child: SizedBox(
-                          width: 5,
-                        )),
-                        ElevatedButton(
-                          onPressed: _submitFeedback,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Color(0xFF00B884),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                          ),
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(
-                                vertical: 12, horizontal: 20),
-                            child: _isLoading
-                                ? CircularProgressIndicator(
-                                    color: Colors.white,
-                                  )
-                                : Text(
-                                    'Submit',
-                                    style: TextStyle(
-                                        fontSize: 16, color: Colors.white),
+                    DSAiAppBar2(context: context),
+                    
+                    Center(
+                      child: SingleChildScrollView(
+                        child: Container(
+                          width: screenWidth < 600
+                              ? screenWidth.w * 0.9
+                              : 350.w, // Responsive width
+                          padding:
+                              const EdgeInsets.symmetric(vertical: 20, horizontal: 25),
+                          // decoration: BoxDecoration(
+                          //   color: Colors.white,
+                          //   borderRadius: BorderRadius.circular(15),
+                          //   boxShadow: const [
+                          //     BoxShadow(
+                          //       color: Colors.black12,
+                          //       blurRadius: 10,
+                          //       spreadRadius: 2,
+                          //     ),
+                          //   ],
+                          // ),
+                          child: Column(
+                            children: [
+                              // Top icon/logo
+                              Image.asset('assets/logo_alt.png'),
+                              const SizedBox(height: 5),
+                              const Text(
+                                'Contact Form',
+                                style: TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFF00B884),
+                                ),
+                              ),
+                              const SizedBox(height: 20),
+                    
+                              // Name Input
+                              TextFormField(
+                                controller: nameController,
+                                decoration: InputDecoration(
+                                  labelText: 'Name',
+                                  hintText: 'Your name',
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(8),
                                   ),
+                                ),
+                              ),
+                              const SizedBox(height: 15),
+                    
+                              // Email Input
+                              TextFormField(
+                                controller: emailController,
+                                decoration: InputDecoration(
+                                  labelText: 'Email',
+                                  hintText: 'Your email',
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 15),
+                    
+                              // Feedback Input
+                              TextFormField(
+                                controller: feedbackController,
+                                maxLines: 4,
+                                decoration: InputDecoration(
+                                  labelText: 'Message',
+                                  hintText: 'Your Message Here',
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 20),
+                    
+                              // Back and Submit Buttons
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  ElevatedButton(
+                                    onPressed: () {
+                                      // Navigator.pop(context);
+                                      Navigator.pushAndRemoveUntil(
+                                        context,
+                                        MaterialPageRoute(
+                                            builder: (context) => HomePage()),
+                                        (Route<dynamic> route) =>
+                                            false, // Remove all routes
+                                      );
+                                    },
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: Color.fromARGB(255, 0, 0, 0),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                    ),
+                                    child: Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                          vertical: 12, horizontal: 20),
+                                      child: Text(
+                                        'Back',
+                                        style: TextStyle(
+                                            fontSize: 16, color: Colors.white),
+                                      ),
+                                    ),
+                                  ),
+                                  Flexible(
+                                      child: SizedBox(
+                                    width: 5,
+                                  )),
+                                  ElevatedButton(
+                                    onPressed: _submitFeedback,
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: Color(0xFF00B884),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                    ),
+                                    child: Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                          vertical: 12, horizontal: 20),
+                                      child: _isLoading
+                                          ? CircularProgressIndicator(
+                                              color: Colors.white,
+                                            )
+                                          : Text(
+                                              'Submit',
+                                              style: TextStyle(
+                                                  fontSize: 16, color: Colors.white),
+                                            ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 10),
+                    
+                              // Footer Text
+                              //  DSAiFooter(context),
+                            ],
                           ),
                         ),
-                      ],
+                      ),
                     ),
-                    const SizedBox(height: 10),
-
-                    // Footer Text
-                    //  DSAiFooter(context),
                   ],
                 ),
-              ),
+              ],
             ),
           ),
         ));

@@ -3,10 +3,12 @@ import 'package:d_sai/UserDashboard.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:ai_barcode_scanner/ai_barcode_scanner.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:http/http.dart' as http; // Import for making API requests
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert'; // Import for JSON decoding
 import 'Common/AppBar.dart';
+import 'Common/AppBarAlt.dart';
 import 'Common/Drawer.dart';
 import 'HomePage.dart';
 
@@ -123,14 +125,14 @@ class _QRScannerPageState extends State<QRScannerPage> {
                 ),
               );
             },
-            appBarBuilder: (context, controller) {
-              return DSAiAppBar();
-            },
+            // appBarBuilder: (context, controller) {
+            //   return DSAiAppBar2(context: context);
+            // },
             controller: MobileScannerController(
               detectionSpeed: DetectionSpeed.noDuplicates,
             ),
-            hideGalleryButton: true,
-            hideGalleryIcon: true,
+            // hideGalleryButton: true,
+            // hideGalleryIcon: true,
             onDetect: (BarcodeCapture capture) async {
               try {
                 // Check if barcodes list is not empty before accessing it
@@ -182,8 +184,10 @@ class _QRScannerPageState extends State<QRScannerPage> {
     debugPrint("Handling scanned result: $result");
 
     if (result.isNotEmpty) {
-      final keyId = _extractKeyIdFromUrl(result);
-      final companyName = _extractCompanyNameFromUrl(result);
+       Map<String, String> queryParams = extractQueryParamsFromUrl(result);
+      final keyId = queryParams['accessId'];
+      final companyName = queryParams['companyName'];
+      final cid = queryParams['cid'];
       debugPrint("Extracted key ID: $keyId");
       debugPrint("Extracted company name: $companyName");
 
@@ -193,13 +197,14 @@ class _QRScannerPageState extends State<QRScannerPage> {
           Navigator.of(context).pushReplacement(
             MaterialPageRoute(
               builder: (context) => Login(
-                accessKey: keyId,
-                company: companyName,
+                accessKey: "${keyId}",
+                company: "${companyName}",
+                cid: "${cid}",
               ),
             ),
           );
         } else {
-          _safeShowErrorDialog("The scanned QR code does not belong to D-SAi.");
+          _safeShowErrorDialog("The scanned QR code does not belong to D-SAi.KeyID: $keyId, result ${result} Company Name: $companyName, isAccessed: $isAccessed");
         }
       } else {
         _safeShowErrorDialog(
@@ -229,6 +234,7 @@ class _QRScannerPageState extends State<QRScannerPage> {
       final segments = uri.pathSegments;
       if (segments.isNotEmpty) {
         return segments.last; // Assuming the key ID is the last segment
+      print("keyyyyy: $segments.last");
       }
     } catch (e) {
       debugPrint("Error parsing URL for key ID: $e");
@@ -262,6 +268,41 @@ class _QRScannerPageState extends State<QRScannerPage> {
       ),
     );
   }
+// String extractCidFromUrl(String url) {
+//   // Parse the URL
+//   Uri uri = Uri.parse(url);
+
+//   // Extract the 'cid' query parameter
+//   String? cid = uri.queryParameters['cid'];
+
+//   // Print or use the extracted cid value
+//   if (cid != null) {
+//        print('Extracted CID: $cid');
+//     return cid.toString();
+ 
+//   } else {
+//     print('CID not found in the URL.');
+//     return '';
+    
+//   }
+// }
+Map<String, String> extractQueryParamsFromUrl(String url) {
+  // Parse the URL
+  Uri uri = Uri.parse(url);
+
+  // Extract the query parameters 'cid', 'accessId', and 'companyName'
+  String? cid = uri.queryParameters['cid'];
+  String? accessId = uri.queryParameters['accessId'];
+  String? companyName = uri.queryParameters['companyName'];
+
+  // Return a map with the extracted values
+  return {
+    'cid': cid ?? '', // Use empty string if cid is null
+    'accessId': accessId ?? '', // Use empty string if accessId is null
+    'companyName': companyName ?? '', // Use empty string if companyName is null
+  };
+}
+
 
   @override
   Widget build(BuildContext context) {
@@ -274,21 +315,63 @@ class _QRScannerPageState extends State<QRScannerPage> {
           (Route<dynamic> route) => false,
         );
       },
-      child: Scaffold(
-        appBar: DSAiAppBar(),
-        // drawer: DSAiDrawer(),
-        resizeToAvoidBottomInset: true,
-        body: AnimatedOpacity(
-          opacity: _opacity,
-          duration: const Duration(milliseconds: 500),
-          child: Center(
-            child: isLoading
-                ? const CircularProgressIndicator()
-                : const Text(
-                    'Scanning QR Code...',
-                    style: TextStyle(
-                        fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
+      child: SafeArea(
+        child: Scaffold(
+          // appBar: DSAiAppBar(),
+          // drawer: DSAiDrawer(),
+          resizeToAvoidBottomInset: true,
+          body: AnimatedOpacity(
+            opacity: _opacity,
+            duration: const Duration(milliseconds: 500),
+            child: Stack(
+              children: [
+                   // Fixed top background image
+                    Positioned(
+                      top: 0,
+                      left: 0,
+                      right: 0,
+                      child: Image.asset(
+                        'assets/top.png',
+                        fit: BoxFit.cover,
+                        width: MediaQuery.of(context).size.width,
+                        height: 180.h, // Adjust the height for your design
+                      ),
+                    ),
+                    // Fixed bottom background image
+                    Positioned(
+                      bottom: 0,
+                      left: 0,
+                      right: 0,
+                      child: Image.asset(
+                        'assets/bottom.png',
+                        fit: BoxFit.cover,
+                        width: MediaQuery.of(context).size.width,
+                        // height: 200, // Adjust the height for your design
+                      ),
+                    ),
+                    DSAiAppBar2(context: context),
+                Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                  
+                    Center(
+                      child: isLoading
+                          ? const CircularProgressIndicator()
+                          : Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Text(
+                                  'Scanning QR Code...',
+                                  style: TextStyle(
+                                      fontSize: 18, fontWeight: FontWeight.bold),
+                                ),
+                            ],
+                          ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
       ),

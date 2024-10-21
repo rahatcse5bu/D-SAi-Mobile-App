@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'dart:async';
 import 'package:lottie/lottie.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -7,6 +8,7 @@ import 'package:http/http.dart' as http;
 import 'package:fluttertoast/fluttertoast.dart';
 
 import 'Common/AppBar.dart';
+import 'Common/AppBarAlt.dart';
 import 'Common/Drawer.dart';
 import 'Common/Footer.dart';
 import 'HomePage.dart';
@@ -15,7 +17,8 @@ import 'Success.dart';
 class UserDashboard extends StatefulWidget {
   final String accessId;
 
-  const UserDashboard({super.key, required this.accessId});
+
+  const UserDashboard({super.key, required this.accessId,});
 
   @override
   _UserDashboardState createState() => _UserDashboardState();
@@ -36,6 +39,7 @@ class _UserDashboardState extends State<UserDashboard> {
   String userName = '';
   String userId = '';
   String companyName = '';
+ 
   String referencePerson = '';
   //opacity for animation
   double _opacity = 0.0;
@@ -95,7 +99,7 @@ class _UserDashboardState extends State<UserDashboard> {
           _isCheckedIn = true;
           _isCheckedOut = false;
           _checkInTime = DateTime.parse(checkInTimeStr); // Safely parse the date
-          _sliderPosition = maxWidth - 18; // Set slider to the rightmost position
+          _sliderPosition = maxWidth - 10; // Set slider to the rightmost position
           _startTimer(); // Start the timer
         });
       } catch (e) {
@@ -145,7 +149,7 @@ class _UserDashboardState extends State<UserDashboard> {
       _sliderPosition += details.delta.dx;
 
       // Ensure that the slider is within bounds
-      _sliderPosition = _sliderPosition.clamp(0.0, maxWidth);
+      _sliderPosition = _sliderPosition.clamp(0.0, maxWidth-12);
     });
   }
 
@@ -158,7 +162,7 @@ class _UserDashboardState extends State<UserDashboard> {
     } else {
       // Reset slider if swipe was insufficient
       setState(() {
-        _sliderPosition = _isCheckedIn ? maxWidth : 0.0;
+        _sliderPosition = _isCheckedIn ? maxWidth-12 : 0.0;
       });
     }
   }
@@ -172,13 +176,16 @@ class _UserDashboardState extends State<UserDashboard> {
     if (result) {
       setState(() {
         _isCheckedIn = true;
-        _sliderPosition = maxWidth-16; // Set slider to the right end
+        _sliderPosition = maxWidth-12; // Set slider to the right end
         _checkInTime =now.toUtc(); // Record check-in time
         _startTimer(); // Start the timer when checked in
         _saveCheckInStatus(true, _checkInTime!.toIso8601String());
         showToast("Checked in successfully!");
       });
     } else {
+       setState(() {
+      _sliderPosition = 0; // Set slider to the right end
+       });
       showToast("Failed to check in.");
     }
   }
@@ -257,7 +264,7 @@ class _UserDashboardState extends State<UserDashboard> {
       
     );
     setState(() {
-        _sliderPosition = maxWidth-16; // Reset to the right for retry
+        _sliderPosition = maxWidth-12; // Reset to the right for retry
     });
   } 
   else{
@@ -278,7 +285,7 @@ class _UserDashboardState extends State<UserDashboard> {
              else {
               // Reset slider to the right
               setState(() {
-                _sliderPosition = maxWidth-16; // Reset to the right for retry
+                _sliderPosition = maxWidth-12; // Reset to the right for retry
               });
               showToast("Failed to check out.");
             }
@@ -287,7 +294,7 @@ class _UserDashboardState extends State<UserDashboard> {
           onClose: () {
             // Reset the slider to the right without performing check-out
             setState(() {
-              _sliderPosition = maxWidth-16; // Reset slider back to the right
+              _sliderPosition = maxWidth-12; // Reset slider back to the right
             });
             Navigator.of(context).pop(); // Close the dialog
           },
@@ -308,6 +315,7 @@ class _UserDashboardState extends State<UserDashboard> {
     final body = jsonEncode({
       'accessId': accessKey,
       'checkedIn': localCheckInTime,
+      'eid': userId,
     });
     print("check in payload $body");
 
@@ -349,6 +357,7 @@ class _UserDashboardState extends State<UserDashboard> {
       'accessId': accessKey,
       'checkedOut': checkOutTime,
       'breakTime': breakTime,
+       'eid': userId,
     });
     print("checkout body $body");
     try {
@@ -414,212 +423,256 @@ class _UserDashboardState extends State<UserDashboard> {
             (Route<dynamic> route) => false, // Remove all routes
           );
         },
-        child: Scaffold(
-          appBar: DSAiAppBar(),
-          // drawer: const DSAiDrawer(),
-          backgroundColor: Colors.white,
-          body: AnimatedOpacity(
-            opacity: _opacity,
-            duration: const Duration(milliseconds: 500),
-            child: Center(
-              child: SingleChildScrollView(
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: Column(
-                    children: [
-                      // Top icon/logo
-                      Container(
-                        margin: const EdgeInsets.only(top: 20, bottom: 10),
-                        padding: const EdgeInsets.all(20),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(50),
-                          boxShadow: const [
-                            BoxShadow(
-                              color: Colors.black12,
-                              blurRadius: 10,
-                              spreadRadius: 2,
-                            ),
-                          ],
+        child: SafeArea(
+          child: Scaffold(
+            // appBar: DSAiAppBar(),
+            // drawer: const DSAiDrawer(),
+            backgroundColor: Colors.white,
+            body: AnimatedOpacity(
+              opacity: _opacity,
+              duration: const Duration(milliseconds: 500),
+              child: Center(
+                child: Stack(
+                  children: [
+                               // Fixed top background image
+                      Positioned(
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        child: Image.asset(
+                          'assets/top.png',
+                          fit: BoxFit.cover,
+                          width: MediaQuery.of(context).size.width,
+                          height: 180.h, // Adjust the height for your design
                         ),
-                        child: Image.asset("assets/logo.png"),
                       ),
-
-                      // User Info Section
-                      Container(
-                        width: screenWidth < 600 ? screenWidth * 1 : 380,
-                        padding: const EdgeInsets.all(20),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(15),
-                          boxShadow: [
-                            const BoxShadow(
-                              color: Colors.black12,
-                              blurRadius: 10,
-                              spreadRadius: 2,
-                            ),
-                          ],
+                      // Fixed bottom background image
+                      Positioned(
+                        bottom: 0,
+                        left: 0,
+                        right: 0,
+                        child: Image.asset(
+                          'assets/bottom.png',
+                          fit: BoxFit.cover,
+                          width: MediaQuery.of(context).size.width,
+                          // height: 200, // Adjust the height for your design
                         ),
+                      ),
+                      DSAiAppBar2(context: context),
+                      SizedBox(height:15.h),
+                    SingleChildScrollView(
+                      child: Container(
+                        padding:  EdgeInsets.symmetric(horizontal: 20.w),
                         child: Column(
+                          
                           children: [
-                            Text(
-                              userName,
-                              style: const TextStyle(
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
-                                color: Color(0xFF00B884),
-                              ),
-                            ),
-                            const SizedBox(height: 10),
-
-                            // Profile Card
+                         
+                            // Top icon/logo
                             Container(
-                              padding: const EdgeInsets.all(10),
+                              margin:  EdgeInsets.only(top: 20, bottom: 5.h),
+                              padding: const EdgeInsets.all(20),
+                              decoration: BoxDecoration(
+                                color: Colors.transparent,
+                                borderRadius: BorderRadius.circular(50),
+                                // boxShadow: const [
+                                //   BoxShadow(
+                                //     color: Colors.black12,
+                                //     blurRadius: 10,
+                                //     spreadRadius: 2,
+                                //   ),
+                                // ],
+                              ),
+                              child: Lottie.asset('assets/lotties/shake-hand.json',
+                              height: 50.h ,
+                              width: 50.h ,
+                              )
+                              // Image.asset("assets/logo.png"),
+                            ),
+                            
+                    
+                            // User Info Section
+                            Container(
+                              width: screenWidth < 600 ? screenWidth * 1 : 380,
+                              padding: const EdgeInsets.all(20),
                               decoration: BoxDecoration(
                                 color: Colors.white,
                                 borderRadius: BorderRadius.circular(15),
-                                border: Border.all(color: Colors.grey.shade300),
-                                boxShadow: const [
-                                  BoxShadow(
-                                    color: Colors.black12,
-                                    blurRadius: 5,
-                                    spreadRadius: 1,
-                                  ),
-                                ],
+                                // boxShadow: [
+                                //   const BoxShadow(
+                                //     color: Colors.black12,
+                                //     blurRadius: 10,
+                                //     spreadRadius: 2,
+                                //   ),
+                                // ],
                               ),
-                              child: Row(
+                              child: Column(
                                 children: [
-                                  CircleAvatar(
-                                    backgroundColor: Colors.grey[300],
-                                    child: userName.isNotEmpty
-                                        ? Text(userName[0])
-                                        : Icon(Icons.person),
+                                  Text(
+                                    userName.toUpperCase(),
+                                    style:  TextStyle(
+                                      fontSize: 13.sp,
+                                      fontWeight: FontWeight.bold,
+                                      color: Color(0xFF00B884),
+                                    ),
                                   ),
-                                  const SizedBox(width: 10),
-                                  Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        userName,
-                                        style: const TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.bold,
+                                   SizedBox(height: 10.h),
+                    
+                                  // Profile Card
+                                  Container(
+                                    padding: const EdgeInsets.all(10),
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      borderRadius: BorderRadius.circular(15),
+                                      border: Border.all(color: Colors.grey.shade300),
+                                      boxShadow: const [
+                                        BoxShadow(
+                                          color: Colors.black12,
+                                          blurRadius: 5,
+                                          spreadRadius: 1,
                                         ),
+                                      ],
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        CircleAvatar(
+                                          backgroundColor: Colors.grey[300],
+                                          child: userName.isNotEmpty
+                                              ? Text(userName[0])
+                                              : Icon(Icons.person),
+                                        ),
+                                        const SizedBox(width: 10),
+                                        Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              userName,
+                                              style: const TextStyle(
+                                                fontSize: 16,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                            Text(
+                                              'UID $userId',
+                                              style: const TextStyle(
+                                                fontSize: 12,
+                                                color: Colors.black54,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                   SizedBox(height: 10.h),
+                                  Stack(
+                                    children: [
+                                      Image.asset(
+                                        'assets/clock.png',
+                                        height: 120, 
+                    
                                       ),
-                                      Text(
-                                        'UID $userId',
-                                        style: const TextStyle(
-                                          fontSize: 12,
-                                          color: Colors.black54,
+                                      Positioned(
+                                        top: 25,
+                                        left: -45,
+                                        child: Lottie.asset(
+                                          'assets/lotties/clock.json',
+                                          width: 200,
+                                          height: 90,
+                                          fit: BoxFit.contain,
                                         ),
                                       ),
                                     ],
                                   ),
-                                ],
-                              ),
-                            ),
-                            const SizedBox(height: 10),
-                            Stack(
-                              children: [
-                                Image.asset(
-                                  'assets/clock.png',
-                                ),
-                                Positioned(
-                                  top: 25,
-                                  left: 15,
-                                  child: Lottie.asset(
-                                    'assets/lotties/clock.json',
-                                    width: 200,
-                                    height: 150,
-                                    fit: BoxFit.contain,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            SizedBox(height: 5),
-
-                            const SizedBox(height: 20),
-
-                            // Display countdown timer
-                            Text(
-                              _formatElapsedTime(),
-                              style: const TextStyle(
-                                fontSize: 45,
-                                fontWeight: FontWeight.bold,
-                                color: Color(0xFF00B884),
-                              ),
-                            ),
-                            const SizedBox(height: 20),
-
-                            // Custom Sliding Check-In / Check-Out Button
-                            Stack(
-                              children: [
-                                Container(
-                                  height: 60,
-                                  width: double.infinity,
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFF00B884)
-                                        .withOpacity(0.2),
-                                    borderRadius: BorderRadius.circular(30),
-                                  ),
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Text(
-                                        _isCheckedIn && !_isCheckedOut
-                                            ? ' Swipe to Check Out'
-                                            : ' Swipe to Check In',
-                                        style: TextStyle(
-                                            color: Colors.black,
-                                            fontSize: 15,
-                                            fontWeight: FontWeight.bold),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                Positioned(
-                                  left: _sliderPosition,
-                                  child: GestureDetector(
-                                    onHorizontalDragUpdate: (details) =>
-                                        _onDragUpdate(details, maxWidth-16),
-                                    onHorizontalDragEnd: (details) =>
-                                        _onDragEnd(maxWidth-16),
-                                    child: AnimatedContainer(
-                                      duration:
-                                          const Duration(milliseconds: 100),
-                                      height: 60,
-                                      width: 60,
-                                      decoration: BoxDecoration(
-                                        color: const Color(0xFF00B884),
-                                        borderRadius: BorderRadius.circular(50),
-                                        boxShadow: [
-                                          BoxShadow(
-                                            color: Colors.black26,
-                                            blurRadius: 5,
-                                            spreadRadius: 1,
-                                          ),
-                                        ],
-                                      ),
-                                      child: Icon(
-                                        _isCheckedIn && !_isCheckedOut
-                                            ? Icons.chevron_left
-                                            : Icons.chevron_right,
-                                        color: Colors.white,
-                                        size: 30,
+                                 
+                    
+                                 SizedBox(height: 10.h),
+                    
+                                  // Display countdown timer
+                                  Visibility(
+                                    visible: _isCheckedIn,
+                                    child: Text(
+                                      _formatElapsedTime(),
+                                      style:  TextStyle(
+                                        fontSize: 30.sp,
+                                        fontWeight: FontWeight.bold,
+                                        color: Color(0xFF00B884),
                                       ),
                                     ),
                                   ),
-                                ),
-                              ],
+                                   SizedBox(height: 15.h),
+                    
+                                  // Custom Sliding Check-In / Check-Out Button
+                                  Stack(
+                                    children: [
+                                      Container(
+                                        height: 60,
+                                        width: double.infinity,
+                                        decoration: BoxDecoration(
+                                          color: const Color(0xFF00B884)
+                                              .withOpacity(0.2),
+                                          borderRadius: BorderRadius.circular(30),
+                                        ),
+                                        child: Row(
+                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          children: [
+                                            Text(
+                                              _isCheckedIn && !_isCheckedOut
+                                                  ? ' Swipe to Check Out'
+                                                  : ' Swipe to Check In',
+                                              style: TextStyle(
+                                                  color: Colors.black,
+                                                  fontSize: 15,
+                                                  fontWeight: FontWeight.bold),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      Positioned(
+                                        left: _sliderPosition,
+                                        child: GestureDetector(
+                                          onHorizontalDragUpdate: (details) =>
+                                              _onDragUpdate(details, maxWidth-10),
+                                          onHorizontalDragEnd: (details) =>
+                                              _onDragEnd(maxWidth-10),
+                                          child: AnimatedContainer(
+                                            duration:
+                                                const Duration(milliseconds: 100),
+                                            height: 60,
+                                            width: 60,
+                                            decoration: BoxDecoration(
+                                              color: const Color(0xFF00B884),
+                                              borderRadius: BorderRadius.circular(50),
+                                              boxShadow: [
+                                                BoxShadow(
+                                                  color: Colors.black26,
+                                                  blurRadius: 5,
+                                                  spreadRadius: 1,
+                                                ),
+                                              ],
+                                            ),
+                                            child: Icon(
+                                              _isCheckedIn && !_isCheckedOut
+                                                  ? Icons.chevron_left
+                                                  : Icons.chevron_right,
+                                              color: Colors.white,
+                                              size: 30,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
                             ),
+                            // Footer
+                            DSAiFooter(context),
                           ],
                         ),
                       ),
-                      // Footer
-                      DSAiFooter(context),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
             ),
@@ -730,29 +783,33 @@ class _BreakTimeDialogState extends State<BreakTimeDialog> {
                   runSpacing: 10,
                   children: [
                   
+                    _buildTimeButton(0),
                     _buildTimeButton(15),
                     _buildTimeButton(30),
+                    _buildTimeButton(45),
                     _buildTimeButton(60, label: '1 Hour'),
+                    _buildTimeButton(75, label: '1.25 Hour'),
                     _buildTimeButton(90, label: '1.5 Hours'),
+                    _buildTimeButton(105, label: '1.75 Hours'),
                     _buildTimeButton(120, label: '2 Hours'),
                     _buildTimeButton(180, label: '3 Hours'),
                     _buildTimeButton(240, label: '4 Hours'),
                   ],
                 ),
-                const SizedBox(height: 15),
-                const Text('Or Input Manually',
-                    style: TextStyle(fontSize: 16, color: Colors.grey)),
-                const SizedBox(height: 15),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    _buildManualInputField(
-                        'Hour', (value) => selectedHours = int.parse(value)),
-                    const SizedBox(width: 10),
-                    _buildManualInputField(
-                        'Min', (value) => selectedMinutes = int.parse(value)),
-                  ],
-                ),
+                // const SizedBox(height: 15),
+                // const Text('Or Input Manually',
+                //     style: TextStyle(fontSize: 16, color: Colors.grey)),
+                // const SizedBox(height: 15),
+                // Row(
+                //   mainAxisAlignment: MainAxisAlignment.center,
+                //   children: [
+                //     _buildManualInputField(
+                //         'Hour', (value) => selectedHours = int.parse(value)),
+                //     const SizedBox(width: 10),
+                //     _buildManualInputField(
+                //         'Min', (value) => selectedMinutes = int.parse(value)),
+                //   ],
+                // ),
                 const SizedBox(height: 20),
                 Container(
                   width: double.infinity,

@@ -1,5 +1,6 @@
 import 'package:d_sai/HomePage.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../ContactUs.dart';
 
@@ -11,10 +12,10 @@ Widget DSAiFooter(BuildContext context) {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           const Text("Having any issue?", style: TextStyle(fontSize: 18),),
-          const SizedBox(height: 15),
+           SizedBox(height: 15.h),
           Container(
             width: double.maxFinite,
-            height: 60,
+            height: 50.h,
             child: ElevatedButton.icon(
               onPressed: () => {
                    Navigator.of(context).pushReplacement(
@@ -23,7 +24,8 @@ Widget DSAiFooter(BuildContext context) {
                                     ),
                                   ),
               },
-              icon: const Icon(Icons.contact_emergency, color: Colors.white),
+              iconAlignment: IconAlignment.end,
+              icon: const Icon(Icons.contact_mail, color: Colors.white),
               label: const Text(
                 'Contact Us',
                 style: TextStyle(color: Colors.white,fontSize: 16,fontWeight: FontWeight.bold),
@@ -39,7 +41,7 @@ Widget DSAiFooter(BuildContext context) {
           ),
          
           SizedBox(
-            height: 10,
+            height: 10.h,
           ),
         ],
       ),

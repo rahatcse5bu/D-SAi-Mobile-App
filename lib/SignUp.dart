@@ -1,5 +1,7 @@
 import 'package:d_sai/Common/AppBar.dart';
+import 'package:d_sai/Common/AppBarAlt.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -214,76 +216,109 @@ class _SignUpPageState extends State<SignUpPage>
           );
           // return result.; // Indicate that the pop is handled
         },
-        child: Scaffold(
-          appBar: DSAiAppBar(),
-          // drawer: DSAiDrawer(),
-          body: AnimatedOpacity(
-            opacity: _opacity,
-            duration: Duration(milliseconds: 500),
-            child: Column(
-              children: [
-                Container(
-                  margin: const EdgeInsets.all(16.0),
-                  // padding: EdgeInsets.symmetric(vertical: 10,horizontal: 8),
-                  height: 50,
-                  decoration: BoxDecoration(
-                    color: Colors.grey.shade200,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: TweenAnimationBuilder(
-                    duration: const Duration(milliseconds: 1200),
-                    curve: Curves.easeOutExpo,
-                    tween: Tween<double>(begin: 0, end: 1),
-                    builder:
-                        (BuildContext context, double opacity, Widget? child) {
-                      return TabBar(
-                        controller: _tabController,
-                        indicator: BoxDecoration(
-                          borderRadius: BorderRadius.circular(10),
-                          color: const Color(0xFF00B884),
-                        ),
-                        labelColor: Colors.white,
-                        unselectedLabelColor: Colors.black,
-                        indicatorSize: TabBarIndicatorSize.tab,
-                        labelStyle: const TextStyle(
-                            fontSize: 16, fontWeight: FontWeight.bold),
-                        unselectedLabelStyle: const TextStyle(fontSize: 16),
-                        physics:
-                            const BouncingScrollPhysics(), // Smoothens the swipe
-                        tabs: [
-                          Tab(
-                            child: AnimatedContainer(
-                              duration: const Duration(milliseconds: 1200),
-                              curve: Curves.easeOutExpo,
-                              width: tabWidth,
-                              alignment: Alignment.center,
-                              child: const Text('Client'),
-                            ),
-                          ),
-                          Tab(
-                            child: AnimatedContainer(
-                              duration: const Duration(milliseconds: 1200),
-                              curve: Curves.easeOutExpo,
-                              width: tabWidth,
-                              alignment: Alignment.center,
-                              child: const Text('Employee'),
-                            ),
-                          ),
-                        ],
-                      );
-                    },
+        child: SafeArea(
+          child: Scaffold(
+            // appBar: DSAiAppBar(),
+            // drawer: DSAiDrawer(),
+            body: AnimatedOpacity(
+              opacity: _opacity,
+              duration: Duration(milliseconds: 500),
+              child: Stack(
+                children: [
+            // Fixed top background image
+                Positioned(
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  child: Image.asset(
+                    'assets/top.png',
+                    fit: BoxFit.cover,
+                    width: MediaQuery.of(context).size.width,
+                    // height: 180.h, // Adjust the height for your design
                   ),
                 ),
-                Expanded(
-                  child: TabBarView(
-                    controller: _tabController,
+                // Fixed bottom background image
+                Positioned(
+                  bottom: 0,
+                  left: 0,
+                  right: 0,
+                  child: Image.asset(
+                    'assets/bottom.png',
+                    fit: BoxFit.cover,
+                    width: MediaQuery.of(context).size.width,
+                    // height: 200, // Adjust the height for your design
+                  ),
+                ),
+               
+                  Column(
                     children: [
-                      _buildClientSignUp(),
-                      _buildEmployeeSignUp(),
+                      DSAiAppBar2(context: context),
+                       SizedBox(height: 30.h,),
+                      Container(
+                        margin: const EdgeInsets.all(16.0),
+                        // padding: EdgeInsets.symmetric(vertical: 10,horizontal: 8),
+                        height: 40.h,
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade200,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: TweenAnimationBuilder(
+                          duration: const Duration(milliseconds: 1200),
+                          curve: Curves.easeOutExpo,
+                          tween: Tween<double>(begin: 0, end: 1),
+                          builder:
+                              (BuildContext context, double opacity, Widget? child) {
+                            return TabBar(
+                              controller: _tabController,
+                              indicator: BoxDecoration(
+                                borderRadius: BorderRadius.circular(10),
+                                color: const Color(0xFF00B884),
+                              ),
+                              labelColor: Colors.white,
+                              unselectedLabelColor: Colors.black,
+                              indicatorSize: TabBarIndicatorSize.tab,
+                              labelStyle:  TextStyle(
+                                  fontSize: 13.sp, fontWeight: FontWeight.bold),
+                              unselectedLabelStyle:  TextStyle(fontSize: 13.sp),
+                              physics:
+                                  const BouncingScrollPhysics(), // Smoothens the swipe
+                              tabs: [
+                                Tab(
+                                  child: AnimatedContainer(
+                                    duration: const Duration(milliseconds: 1200),
+                                    curve: Curves.easeOutExpo,
+                                    width: tabWidth,
+                                    alignment: Alignment.center,
+                                    child: const Text('Client'),
+                                  ),
+                                ),
+                                Tab(
+                                  child: AnimatedContainer(
+                                    duration: const Duration(milliseconds: 1200),
+                                    curve: Curves.easeOutExpo,
+                                    width: tabWidth,
+                                    alignment: Alignment.center,
+                                    child: const Text('Employee'),
+                                  ),
+                                ),
+                              ],
+                            );
+                          },
+                        ),
+                      ),
+                      Expanded(
+                        child: TabBarView(
+                          controller: _tabController,
+                          children: [
+                            _buildClientSignUp(),
+                            _buildEmployeeSignUp(),
+                          ],
+                        ),
+                      ),
                     ],
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ));
@@ -298,21 +333,21 @@ class _SignUpPageState extends State<SignUpPage>
           children: [
          
                _buildTextField('Name', nameController),
-            const SizedBox(height: 15),
+             SizedBox(height: 10.h),
               _buildTextField('Company Name', companyNameController),
-            const SizedBox(height: 15),
+               SizedBox(height: 10.h),
             _buildTextField(
                 'Registration Number', registrationNumberController),
-            const SizedBox(height: 15),
+               SizedBox(height: 10.h),
             _buildTextField(
                 'Phone Number', clientPhoneNumberController),
-            const SizedBox(height: 15),
+               SizedBox(height: 10.h),
             _buildTextField('Address', addressController),
-            const SizedBox(height: 15),
+             SizedBox(height: 10.h),
             _buildTextField('Email ID', mailIdController),
-            const SizedBox(height: 15),
-            _buildPictureUpload(isClient: true),
-            const SizedBox(height: 20),
+           SizedBox(height: 10.h),
+            // _buildPictureUpload(isClient: true),
+            SizedBox(height: 10.h),
             _buildSubmitButton('Sign Up as Client', _submitClientSignUp),
           ],
         ),
@@ -328,17 +363,17 @@ class _SignUpPageState extends State<SignUpPage>
         child: Column(
           children: [
             _buildTextField('Full Name', fullNameController),
-            const SizedBox(height: 15),
+              SizedBox(height: 10.h),
             _buildTextField('Position', positionController),
-            const SizedBox(height: 15),
+           SizedBox(height: 10.h),
             _buildTextField('Email', emailController),
-            const SizedBox(height: 15),
+              SizedBox(height: 10.h),
             _buildTextField('Phone Number', phoneNumberController),
-            const SizedBox(height: 15),
+            SizedBox(height: 10.h),
             _buildTextField('Bank Account Details', bankDetailsController),
-            const SizedBox(height: 15),
-            _buildPictureUpload(isClient: false),
-            const SizedBox(height: 20),
+            SizedBox(height: 10.h),
+            // _buildPictureUpload(isClient: false),
+            SizedBox(height: 10.h),
             _buildSubmitButton('Sign Up as Employee', _submitEmployeeSignUp),
           ],
         ),
@@ -381,9 +416,9 @@ class _SignUpPageState extends State<SignUpPage>
             children: [
               Image.file(
                 File(image.path),
-                height: 150,
+                height: 150.h,
               ),
-              const SizedBox(height: 10),
+               SizedBox(height: 10.h),
               TextButton(
                 onPressed: () => _pickImage(isClient),
                 child: const Text(

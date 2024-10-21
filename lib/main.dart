@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:flutter/services.dart'; // Required for SystemNavigator.pop()
@@ -113,7 +114,13 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return ScreenUtilInit(
+      designSize: const Size(360, 690),
+      minTextAdapt: true,
+      splitScreenMode: true,
+      // Use builder only if you need to use library outside ScreenUtilInit context
+      builder: (_ , child) {
+        return MaterialApp(
       navigatorKey: navigatorKey, // Set the global navigator key
       debugShowCheckedModeBanner: false,
       home: const SplashScreen(),
@@ -124,7 +131,7 @@ class MyApp extends StatelessWidget {
       // home: const ForgetID(),
       // home: const UserDashboard(),
       // home: const SuccessScreen(),
-    );
+    );});
   }
 }
 
@@ -148,7 +155,7 @@ class _SplashScreenState extends State<SplashScreen> {
   // Function to handle progress and navigation
   void _startLoading() {
     // Set a timer to increase the progress over time
-    Timer.periodic(const Duration(milliseconds: 50), (Timer timer) {
+    Timer.periodic(const Duration(milliseconds: 20), (Timer timer) {
       if (_percentage == 100) {
         timer.cancel(); // Cancel the timer when loading is complete
         _navigateToQRScanner(); // Navigate to next screen
@@ -186,27 +193,27 @@ class _SplashScreenState extends State<SplashScreen> {
             ),
             const SizedBox(height: 20),
             
-            // Loading bar (linear progress indicator)
-            Container(
-              padding: EdgeInsetsDirectional.symmetric(horizontal: 40),
-              child: LinearProgressIndicator(
-                value: _progress, // Set the progress value (0.0 to 1.0)
-                minHeight: 8.0, // Set the height of the loading bar
-                backgroundColor: Colors.grey[300],
-                color: const Color(0xFF00B884), // Progress bar color
-              ),
-            ),
-            const SizedBox(height: 20),
+            // // Loading bar (linear progress indicator)
+            // Container(
+            //   padding: EdgeInsetsDirectional.symmetric(horizontal: 40),
+            //   child: LinearProgressIndicator(
+            //     value: _progress, // Set the progress value (0.0 to 1.0)
+            //     minHeight: 8.0, // Set the height of the loading bar
+            //     backgroundColor: Colors.grey[300],
+            //     color: const Color(0xFF00B884), // Progress bar color
+            //   ),
+            // ),
+            // const SizedBox(height: 20),
 
-            // Display the percentage as text
-            Text(
-              '$_percentage%', // Show the percentage (1 to 100)
-              style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFF00B884),
-              ),
-            ),
+            // // Display the percentage as text
+            // Text(
+            //   '$_percentage%', // Show the percentage (1 to 100)
+            //   style: const TextStyle(
+            //     fontSize: 18,
+            //     fontWeight: FontWeight.bold,
+            //     color: Color(0xFF00B884),
+            //   ),
+            // ),
           ],
         ),
       ),
