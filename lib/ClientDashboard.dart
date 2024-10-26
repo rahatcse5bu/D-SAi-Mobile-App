@@ -14,6 +14,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:screenshot/screenshot.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:uuid/uuid.dart';
 import 'Common/AppBar.dart';
 import 'Common/CompanyInfoCard.dart';
@@ -256,12 +257,11 @@ Map<String, dynamic> _clientDetails = {}; // Update declaration
     }
   }
 
- Future<void> _showQRDialog() async {
+Future<void> _showQRDialog() async {
   // Check for existing QR code
-  final existingQRCode = await _getExistingQRCode(uniqueAccessKey);
-  bool isAccessKeyPosted = await _postAccessLink(uniqueAccessKey);
+  final existingQRCodeFile = await _getExistingQRCode(uniqueAccessKey);
 
-  if (existingQRCode != null) {
+  if (existingQRCodeFile != null) {
     // Show the existing QR code
     showDialog(
       context: context,
@@ -284,8 +284,6 @@ Map<String, dynamic> _clientDetails = {}; // Update declaration
             child: Center(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   Text(
                     "Scan For Task",
@@ -298,28 +296,18 @@ Map<String, dynamic> _clientDetails = {}; // Update declaration
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    child: SizedBox(
-                      height: 200,
-                      width: 200,
-                      child: Image.file(existingQRCode), // Display stored QR code
-                    ),
+                    child: Image.file(existingQRCodeFile, height: 200, width: 200),
                   ),
                   SizedBox(height: 5.h),
                   Column(
                     children: [
                       Text(
                         widget.companyName,
-                        style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 13.sp,
-                            fontWeight: FontWeight.bold),
+                        style: TextStyle(color: Colors.white, fontSize: 13.sp, fontWeight: FontWeight.bold),
                       ),
                       Text(
                         "D-Sai | www.d-sai.com",
-                        style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 13.sp,
-                            fontWeight: FontWeight.bold),
+                        style: TextStyle(color: Colors.white, fontSize: 13.sp, fontWeight: FontWeight.bold),
                       ),
                     ],
                   ),
@@ -328,190 +316,101 @@ Map<String, dynamic> _clientDetails = {}; // Update declaration
             ),
           ),
           actions: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                ElevatedButton(
-                  style: ButtonStyle(
-                    backgroundColor: MaterialStateProperty.all(Color(0xFF10A7AE)),
-                    shape: MaterialStateProperty.all<RoundedRectangleBorder>(
-                      RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                    ),
-                  ),
-                  onPressed: () => _downloadQRImage(), // Download saved image if needed
-                  child: Text(
-                    "Download QR Code",
-                    style: TextStyle(color: Colors.white, fontSize: 13.sp),
-                  ),
-                ),
-                SizedBox(width: 10.w),
-                TextButton(
-                  style: ButtonStyle(
-                    backgroundColor:
-                        MaterialStateProperty.all(Color.fromARGB(255, 241, 18, 18)),
-                    side: MaterialStateProperty.all(BorderSide(
-                      color: Color.fromARGB(255, 243, 11, 11),
-                    )),
-                    shape: MaterialStateProperty.all<RoundedRectangleBorder>(
-                      RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                    ),
-                  ),
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                  child: Text(
-                    "Close",
-                    style: TextStyle(color: Colors.white, fontSize: 13.sp),
-                  ),
-                ),
-              ],
+         ElevatedButton(
+              onPressed: () {
+                // Share the QR code image file
+                Share.shareXFiles([XFile(existingQRCodeFile.path)], text: 'Here is the QR code for ${widget.companyName}');
+              },
+              child: Text("Share QR Code", style: TextStyle(color: Colors.blue, fontSize: 13.sp)),
             ),
-          ],
-        );
-      },
-    );
-  } else if (isAccessKeyPosted) {
-    // Generate a new QR code if it doesn't exist
-    showDialog(
-      context: context,
-      useSafeArea: true,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Center(
-            child: Text(
-              "Generated QR Code",
-              style: TextStyle(fontSize: 16.sp, color: Color(0xFF10A7AE)),
-            ),
-          ),
-          content: Screenshot(
-            controller: screenshotController,
-            child: Container(
-              decoration: BoxDecoration(
-                color: Color(0xFF10A7AE),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              width: MediaQuery.of(context).size.width * 0.8,
-              height: MediaQuery.of(context).size.height * 0.5,
-              child: Center(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Text(
-                      "Scan For Task",
-                      style: TextStyle(fontSize: 14.sp, color: Colors.white),
-                    ),
-                    SizedBox(height: 8.h),
-                    Container(
-                      padding: EdgeInsets.all(20.sp),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: SizedBox(
-                        height: 200,
-                        width: 200,
-                        child: QrImageView(
-                          data:
-                              'http://www.d-sai.com/qr/login/?companyName=${widget.companyName}&accessId=${uniqueAccessKey}&cid=${widget.cid}',
-                          version: QrVersions.auto,
-                          size: 200.0,
-                          backgroundColor: Colors.white,
-                          foregroundColor: Colors.black,
-                          padding: EdgeInsets.all(10.sp),
-                          embeddedImageStyle: QrEmbeddedImageStyle(
-                              size: Size.square(50)),
-                        ),
-                      ),
-                    ),
-                    SizedBox(height: 5.h),
-                    Column(
-                      children: [
-                        Text(
-                          widget.companyName,
-                          style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 13.sp,
-                              fontWeight: FontWeight.bold),
-                        ),
-                        Text(
-                          "D-Sai | www.d-sai.com",
-                          style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 13.sp,
-                              fontWeight: FontWeight.bold),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-          actions: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                ElevatedButton(
-                  style: ButtonStyle(
-                    backgroundColor: MaterialStateProperty.all(Color(0xFF10A7AE)),
-                    shape: MaterialStateProperty.all<RoundedRectangleBorder>(
-                      RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                    ),
-                  ),
-                  onPressed: () async {
-                    final Uint8List? capturedImage = await screenshotController.capture();
-                    if (capturedImage != null) {
-                      await _saveQRCodeLocally(capturedImage, uniqueAccessKey);
-                    }
-                    _downloadQRImage(); // Save and download the QR code image
-                  },
-                  child: Text(
-                    "Download QR Code",
-                    style: TextStyle(color: Colors.white, fontSize: 13.sp),
-                  ),
-                ),
-                SizedBox(width: 10.w),
-                TextButton(
-                  style: ButtonStyle(
-                    backgroundColor:
-                        MaterialStateProperty.all(Color.fromARGB(255, 241, 18, 18)),
-                    side: MaterialStateProperty.all(BorderSide(
-                      color: Color.fromARGB(255, 243, 11, 11),
-                    )),
-                    shape: MaterialStateProperty.all<RoundedRectangleBorder>(
-                      RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                    ),
-                  ),
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                  child: Text(
-                    "Close",
-                    style: TextStyle(color: Colors.white, fontSize: 13.sp),
-                  ),
-                ),
-              ],
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text("Close", style: TextStyle(color: Colors.red, fontSize: 13.sp)),
             ),
           ],
         );
       },
     );
   } else {
-    // Show a loading indicator if the access key post fails or is in progress
-    CircularProgressIndicator();
+    // If QR code file is not found, generate a new QR code and display it
+    final bool isAccessKeyPosted = await _postAccessLink(uniqueAccessKey);
+
+    if (isAccessKeyPosted) {
+      showDialog(
+        context: context,
+        useSafeArea: true,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Center(
+              child: Text(
+                "Generated QR Code",
+                style: TextStyle(fontSize: 16.sp, color: Color(0xFF10A7AE)),
+              ),
+            ),
+            content: Screenshot(
+              controller: screenshotController,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Color(0xFF10A7AE),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                width: MediaQuery.of(context).size.width * 0.8,
+                height: MediaQuery.of(context).size.height * 0.5,
+                child: Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text("Scan For Task", style: TextStyle(fontSize: 14.sp, color: Colors.white)),
+                      SizedBox(height: 8.h),
+                      QrImageView(
+                        data: 'http://www.d-sai.com/qr/login/?companyName=${widget.companyName}&accessId=${uniqueAccessKey}&cid=${widget.cid}',
+                        version: QrVersions.auto,
+                        size: 200.0,
+                        backgroundColor: Colors.white,
+                        foregroundColor: Colors.black,
+                      ),
+                      SizedBox(height: 5.h),
+                      Column(
+                        children: [
+                          Text(
+                            widget.companyName,
+                            style: TextStyle(color: Colors.white, fontSize: 13.sp, fontWeight: FontWeight.bold),
+                          ),
+                          Text(
+                            "D-Sai | www.d-sai.com",
+                            style: TextStyle(color: Colors.white, fontSize: 13.sp, fontWeight: FontWeight.bold),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            actions: [
+              ElevatedButton(
+                onPressed: () async {
+                  final Uint8List? capturedImage = await screenshotController.capture();
+                  if (capturedImage != null) {
+                    await _saveQRCodeLocally(capturedImage, uniqueAccessKey);
+                    _downloadQRImage(); // Download QR code image after saving it locally
+                  }
+                },
+                child: Text("Download QR Code", style: TextStyle(color: Colors.blue, fontSize: 13.sp)),
+              ),
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: Text("Close", style: TextStyle(color: Colors.red, fontSize: 13.sp)),
+              ),
+            ],
+          );
+        },
+      );
+    } else {
+      _showError("Failed to post access link. Please try again.");
+    }
   }
 }
-
 
 Future<String> _getQRFilePath(String uniqueKey) async {
   final directory = await getApplicationDocumentsDirectory();
