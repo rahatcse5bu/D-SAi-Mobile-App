@@ -324,6 +324,8 @@ log("total width: ${Get.width-60}");
       'checkedIn': localCheckInTime,
       'eid': userId,
     });
+
+    
     print("check in payload $body");
 
     try {
@@ -332,6 +334,34 @@ log("total width: ${Get.width-60}");
         headers: {'Content-Type': 'application/json'},
         body: body,
       );
+        // Show the payload in a dialog box before making the API call
+  await showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        title: Text('Check-In Payload'),
+        content: SingleChildScrollView(
+          child: Column(
+            children: [
+              Text(body, maxLines: 40,
+              ),
+              SizedBox(height: 10,), 
+              Text(" Response Check-In : ${response.body}", maxLines: 40,),
+              Text(" Response Response Status Code chk in : ${response.statusCode}", maxLines: 40,)
+            ],
+          ),
+        ),
+        actions: <Widget>[
+          TextButton(
+            child: Text('OK'),
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+          ),
+        ],
+      );
+    },
+  );
       setState(() {
         _isCheckedOut = false;
       });
@@ -343,6 +373,7 @@ log("total width: ${Get.width-60}");
         showToast("Failed to check in. Please try again later.");
         return false;
       }
+      
     } catch (e) {
       setState(() {
         _isCheckedOut = false;
@@ -351,6 +382,7 @@ log("total width: ${Get.width-60}");
       showToast("Error during check-in: $e");
       return false;
     }
+    
   }
 
   // Check-out API call
@@ -373,6 +405,34 @@ log("total width: ${Get.width-60}");
         headers: {'Content-Type': 'application/json'},
         body: body,
       );
+           // Show the payload in a dialog box before making the API call
+  await showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        title: Text('Check-Out Payload'),
+        content: SingleChildScrollView(
+          child: Column(
+            children: [
+              Text(body, maxLines: 40,
+              ),
+              SizedBox(height: 10,), 
+              Text(" Response Check-Out : ${response.body}", maxLines: 40,),
+              Text(" Response Status Code : ${response.statusCode}", maxLines: 40,)
+            ],
+          ),
+        ),
+        actions: <Widget>[
+          TextButton(
+            child: Text('OK'),
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+          ),
+        ],
+      );
+    },
+  );
       print("response body ${response.body}");
       if (response.statusCode == 200) {
         setState(() {

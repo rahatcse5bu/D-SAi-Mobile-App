@@ -46,6 +46,8 @@ class ClientDashboard extends StatefulWidget {
 
 class _ClientDashboardState extends State<ClientDashboard> {
   List<dynamic> _employeeViews = [];
+Map<String, dynamic> _clientDetails = {}; // Update declaration
+
   bool _isLoading = true;
   double _opacity = 0.0;
   late Uint8List _imageFile;
@@ -75,14 +77,20 @@ class _ClientDashboardState extends State<ClientDashboard> {
       _isLoading = true; // Show loading indicator when fetching
     });
     try {
-      final String apiUrl =
-          'https://dsaiqrbackend.vercel.app/api/v1/clients/client-details/${widget.cid}?page=$_currentPage&limit=$_limit';
+      // final String apiUrl =
+      //     'https://dsaiqrbackend.vercel.app/api/v1/clients/client-details/${widget.cid}?page=$_currentPage&limit=$_limit';
+      // final response = await http.get(Uri.parse(apiUrl));
+// debugPrint("${response.body}");
+ final String apiUrl =
+          'https://dsaiqrbackend.vercel.app/api/v2/clients/client-details/${widget.cid}?page=$_currentPage&limit=$_limit';
       final response = await http.get(Uri.parse(apiUrl));
 // debugPrint("${response.body}");
+// https://dsaiqrbackend.vercel.app/api/v2/clients/client-details/C3298192
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         setState(() {
           _employeeViews = data['data'];
+          _clientDetails= data;
           _totalPages = data['pagination']['pages']; // Set total pages
         });
       } else {
@@ -560,7 +568,7 @@ Future<void> _saveQRCodeLocally(Uint8List qrImageBytes, String uniqueAccessKey) 
                     ? const Center(
                         child: CircularProgressIndicator(
                             color: kLoadingIndicatorColor))
-                    : _employeeViews.isEmpty
+                    : _clientDetails.isEmpty
                         ? AnimatedOpacity(
                             opacity: _opacity,
                             duration: const Duration(milliseconds: 500),
@@ -577,19 +585,15 @@ Future<void> _saveQRCodeLocally(Uint8List qrImageBytes, String uniqueAccessKey) 
                                 Container(
                                   child: CompanyCard(
                                     companyData: {
-                                      'companyName': _employeeViews[0]
-                                          ['companyName'],
-                                      'companyAddress': _employeeViews[0]
-                                          ['companyAddress'],
-                                      'companyMailId': _employeeViews[0]
-                                          ['companyMailId'],
-                                      'companyNumber': _employeeViews[0]
-                                          ['companyNumber'],
+                                      'companyName': _clientDetails['companyName'],
+                                      'companyAddress': _clientDetails['companyAddress'],
+                                      'companyMailId': _clientDetails['companyMailId'],
+                                      'companyNumber': _clientDetails['companyNumber'],
                                     },
                                     onShowQRDialog: _showQRDialog,
                                   ),
                                 ),
-                                Expanded(
+                               if(_employeeViews.isNotEmpty) Expanded(
                                   child: SingleChildScrollView(
                                     child: SingleChildScrollView(
                                       scrollDirection: Axis.horizontal,
@@ -600,9 +604,20 @@ Future<void> _saveQRCodeLocally(Uint8List qrImageBytes, String uniqueAccessKey) 
                                     ),
                                   ),
                                 ),
-                                const SizedBox(height: 10),
-                                _buildPaginationControls(), // Add pagination controls
-                                const SizedBox(height: 10),
+                               if(_employeeViews.isNotEmpty) const SizedBox(height: 10),
+                             if(_employeeViews.isNotEmpty)   _buildPaginationControls(), // Add pagination controls
+                              if(_employeeViews.isNotEmpty)  const SizedBox(height: 10),
+                              if(_employeeViews.isEmpty)  Center(
+                                child: SizedBox(
+                                  height: 400.h,
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Text("No data found.",
+                                          style: TextStyle(fontSize: 16)),
+                                    ],
+                                  ),
+                                )),
                               ],
                             ),
                           ),
