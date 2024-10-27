@@ -20,8 +20,10 @@ import 'Success.dart';
 class UserDashboard extends StatefulWidget {
   final String accessId;
 
-
-  const UserDashboard({super.key, required this.accessId,});
+  const UserDashboard({
+    super.key,
+    required this.accessId,
+  });
 
   @override
   _UserDashboardState createState() => _UserDashboardState();
@@ -42,7 +44,7 @@ class _UserDashboardState extends State<UserDashboard> {
   String userName = '';
   String userId = '';
   String companyName = '';
-  RxDouble mainWidth= Get.width.obs;
+  RxDouble mainWidth = Get.width.obs;
   String referencePerson = '';
   //opacity for animation
   double _opacity = 0.0;
@@ -101,8 +103,10 @@ class _UserDashboardState extends State<UserDashboard> {
         setState(() {
           _isCheckedIn = true;
           _isCheckedOut = false;
-          _checkInTime = DateTime.parse(checkInTimeStr); // Safely parse the date
-          _sliderPosition = mainWidth.value - 60; // Set slider to the rightmost position
+          _checkInTime =
+              DateTime.parse(checkInTimeStr); // Safely parse the date
+          _sliderPosition =
+              mainWidth.value - 60; // Set slider to the rightmost position
           _startTimer(); // Start the timer
         });
       } catch (e) {
@@ -129,7 +133,8 @@ class _UserDashboardState extends State<UserDashboard> {
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (_checkInTime != null) {
         setState(() {
-          _elapsedTime = DateTime.now().difference(_checkInTime!); // Update elapsed time
+          _elapsedTime =
+              DateTime.now().difference(_checkInTime!); // Update elapsed time
         });
       } else {
         // Handle null case (e.g., stop the timer)
@@ -141,8 +146,10 @@ class _UserDashboardState extends State<UserDashboard> {
   // Function to format the elapsed time into HH:MM:SS
   String _formatElapsedTime() {
     final hours = _elapsedTime.inHours.toString().padLeft(2, '0');
-    final minutes = _elapsedTime.inMinutes.remainder(60).toString().padLeft(2, '0');
-    final seconds = _elapsedTime.inSeconds.remainder(60).toString().padLeft(2, '0');
+    final minutes =
+        _elapsedTime.inMinutes.remainder(60).toString().padLeft(2, '0');
+    final seconds =
+        _elapsedTime.inSeconds.remainder(60).toString().padLeft(2, '0');
     return '$hours:$minutes:$seconds';
   }
 
@@ -150,12 +157,12 @@ class _UserDashboardState extends State<UserDashboard> {
   void _onDragUpdate(DragUpdateDetails details, double maxWidth) {
     setState(() {
       _sliderPosition += details.delta.dx;
-log("positoon: ${details.delta.dx}");
-log("_sliderPosition: ${_sliderPosition}");
-log("total width: ${Get.width-60}");
+      log("positoon: ${details.delta.dx}");
+      log("_sliderPosition: ${_sliderPosition}");
+      log("total width: ${Get.width - 60}");
       // Ensure that the slider is within bounds
       // _sliderPosition = _sliderPosition.clamp(0.0, maxWidth-12);
-      _sliderPosition = _sliderPosition.clamp(0.0, maxWidth-60);
+      _sliderPosition = _sliderPosition.clamp(0.0, maxWidth - 60);
     });
   }
 
@@ -164,11 +171,12 @@ log("total width: ${Get.width-60}");
     if (!_isCheckedIn && _sliderPosition > maxWidth * 0.7) {
       _showCheckInConfirmation(maxWidth); // Check in when swiping right
     } else if (_isCheckedIn && _sliderPosition < maxWidth * 0.3) {
-      _showBreakTimeDialog(maxWidth); // Show break dialog on check-out swipe left
+      _showBreakTimeDialog(
+          maxWidth); // Show break dialog on check-out swipe left
     } else {
       // Reset slider if swipe was insufficient
       setState(() {
-        _sliderPosition = _isCheckedIn ? maxWidth-60 : 0.0;
+        _sliderPosition = _isCheckedIn ? maxWidth - 60 : 0.0;
       });
     }
   }
@@ -182,16 +190,16 @@ log("total width: ${Get.width-60}");
     if (result) {
       setState(() {
         _isCheckedIn = true;
-        _sliderPosition = maxWidth-60; // Set slider to the right end
-        _checkInTime =now.toUtc(); // Record check-in time
+        _sliderPosition = maxWidth - 60; // Set slider to the right end
+        _checkInTime = now.toUtc(); // Record check-in time
         _startTimer(); // Start the timer when checked in
         _saveCheckInStatus(true, _checkInTime!.toIso8601String());
         showToast("Checked in successfully!");
       });
     } else {
-       setState(() {
-      _sliderPosition = 0; // Set slider to the left end
-       });
+      setState(() {
+        _sliderPosition = 0; // Set slider to the left end
+      });
       showToast("Failed to check in.");
     }
   }
@@ -249,59 +257,63 @@ log("total width: ${Get.width-60}");
             DateTime now = DateTime.now();
             String breakTime = '$selectedHours:$selectedMinutes';
             final prefs = await SharedPreferences.getInstance();
-    final localCheckInTimeStr = prefs.getString('checkInTime') ?? '';
-    // Parse the local check-in time (assumed to be stored in UTC ISO format)
-  DateTime localCheckInTime = DateTime.parse(localCheckInTimeStr).toUtc();
+            final localCheckInTimeStr = prefs.getString('checkInTime') ?? '';
+            // Parse the local check-in time (assumed to be stored in UTC ISO format)
+            DateTime localCheckInTime =
+                DateTime.parse(localCheckInTimeStr).toUtc();
 
-  // Calculate the total worked time (difference between now and check-in)
-  Duration workedDuration = now.difference(localCheckInTime);
+            // Calculate the total worked time (difference between now and check-in)
+            Duration workedDuration = now.difference(localCheckInTime);
 
-  // Parse break time (HH:mm) into Duration
-  List<String> breakTimeParts = breakTime.split(':');
-  int breakHours = int.parse(breakTimeParts[0]);
-  int breakMinutes = int.parse(breakTimeParts[1]);
-  Duration breakDuration = Duration(hours: breakHours, minutes: breakMinutes);
+            // Parse break time (HH:mm) into Duration
+            List<String> breakTimeParts = breakTime.split(':');
+            int breakHours = int.parse(breakTimeParts[0]);
+            int breakMinutes = int.parse(breakTimeParts[1]);
+            Duration breakDuration =
+                Duration(hours: breakHours, minutes: breakMinutes);
 
-  // Check if break time is greater than or equal to worked time
-  if (breakDuration >= workedDuration) {
-    // Show snackbar if break time exceeds or equals working time
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text("Break time can't be greater than working time")),
-      
-    );
-    setState(() {
-        _sliderPosition = mainWidth.value-60; // Reset to the right for retry
-    });
-  } 
-  else{
-            var result = await checkOutApiCall(now.toUtc().toIso8601String(), breakTime);
-
-            if (result) {
-              await prefs.setBool('isCheckedOut', true);
+            // Check if break time is greater than or equal to worked time
+            if (breakDuration >= workedDuration) {
+              // Show snackbar if break time exceeds or equals working time
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                    content:
+                        Text("Break time can't be greater than working time")),
+              );
               setState(() {
-                _isCheckedOut = true;
-                _checkOutTime = now; // Record check-out time
+                _sliderPosition =
+                    mainWidth.value - 60; // Reset to the right for retry
               });
-              _saveCheckOutTime(_checkOutTime!.toIso8601String());
-              showToast("Checked out successfully!");
-              _timer?.cancel(); // Stop the timer
-              await _resetCheckInStatus(); // Reset the status and navigate to SuccessScreen
-            } 
-            
-             else {
-              // Reset slider to the right
-              setState(() {
-                _sliderPosition = mainWidth.value-60; // Reset to the right for retry
-              });
-              showToast("Failed to check out.");
+            } else {
+              var result = await checkOutApiCall(
+                  now.toUtc().toIso8601String(), breakTime);
+
+              if (result) {
+                await prefs.setBool('isCheckedOut', true);
+                setState(() {
+                  _isCheckedOut = true;
+                  _checkOutTime = now; // Record check-out time
+                });
+                _saveCheckOutTime(_checkOutTime!.toIso8601String());
+                showToast("Checked out successfully!");
+                _timer?.cancel(); // Stop the timer
+                await _resetCheckInStatus(); // Reset the status and navigate to SuccessScreen
+              } else {
+                // Reset slider to the right
+                setState(() {
+                  _sliderPosition =
+                      mainWidth.value - 60; // Reset to the right for retry
+                });
+                showToast("Failed to check out.");
+              }
             }
-  }
           },
           onClose: () {
             // Reset the slider to the right without performing check-out
             setState(() {
               // _sliderPosition = maxWidth-12; // Reset slider back to the right
-              _sliderPosition = mainWidth.value-60; // Reset slider back to the right
+              _sliderPosition =
+                  mainWidth.value - 60; // Reset slider back to the right
             });
             Navigator.of(context).pop(); // Close the dialog
           },
@@ -325,7 +337,6 @@ log("total width: ${Get.width-60}");
       'eid': userId,
     });
 
-    
     print("check in payload $body");
 
     try {
@@ -334,34 +345,34 @@ log("total width: ${Get.width-60}");
         headers: {'Content-Type': 'application/json'},
         body: body,
       );
-        // Show the payload in a dialog box before making the API call
-  await showDialog(
-    context: context,
-    builder: (BuildContext context) {
-      return AlertDialog(
-        title: Text('Check-In Payload'),
-        content: SingleChildScrollView(
-          child: Column(
-            children: [
-              Text(body, maxLines: 40,
-              ),
-              SizedBox(height: 10,), 
-              Text(" Response Check-In : ${response.body}", maxLines: 40,),
-              Text(" Response Response Status Code chk in : ${response.statusCode}", maxLines: 40,)
-            ],
-          ),
-        ),
-        actions: <Widget>[
-          TextButton(
-            child: Text('OK'),
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-          ),
-        ],
-      );
-    },
-  );
+      // Show the payload in a dialog box before making the API call
+      // await showDialog(
+      //   context: context,
+      //   builder: (BuildContext context) {
+      //     return AlertDialog(
+      //       title: Text('Check-In Payload'),
+      //       content: SingleChildScrollView(
+      //         child: Column(
+      //           children: [
+      //             Text(body, maxLines: 40,
+      //             ),
+      //             SizedBox(height: 10,),
+      //             Text(" Response Check-In : ${response.body}", maxLines: 40,),
+      //             Text(" Response Response Status Code chk in : ${response.statusCode}", maxLines: 40,)
+      //           ],
+      //         ),
+      //       ),
+      //       actions: <Widget>[
+      //         TextButton(
+      //           child: Text('OK'),
+      //           onPressed: () {
+      //             Navigator.of(context).pop();
+      //           },
+      //         ),
+      //       ],
+      //     );
+      //   },
+      // );
       setState(() {
         _isCheckedOut = false;
       });
@@ -373,7 +384,6 @@ log("total width: ${Get.width-60}");
         showToast("Failed to check in. Please try again later.");
         return false;
       }
-      
     } catch (e) {
       setState(() {
         _isCheckedOut = false;
@@ -382,7 +392,6 @@ log("total width: ${Get.width-60}");
       showToast("Error during check-in: $e");
       return false;
     }
-    
   }
 
   // Check-out API call
@@ -396,7 +405,7 @@ log("total width: ${Get.width-60}");
       'accessId': accessKey,
       'checkedOut': checkOutTime,
       'breakTime': breakTime,
-       'eid': userId,
+      'eid': userId,
     });
     print("checkout body $body");
     try {
@@ -405,34 +414,44 @@ log("total width: ${Get.width-60}");
         headers: {'Content-Type': 'application/json'},
         body: body,
       );
-           // Show the payload in a dialog box before making the API call
-  await showDialog(
-    context: context,
-    builder: (BuildContext context) {
-      return AlertDialog(
-        title: Text('Check-Out Payload'),
-        content: SingleChildScrollView(
-          child: Column(
-            children: [
-              Text(body, maxLines: 40,
-              ),
-              SizedBox(height: 10,), 
-              Text(" Response Check-Out : ${response.body}", maxLines: 40,),
-              Text(" Response Status Code : ${response.statusCode}", maxLines: 40,)
-            ],
-          ),
-        ),
-        actions: <Widget>[
-          TextButton(
-            child: Text('OK'),
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-          ),
-        ],
-      );
-    },
-  );
+      // Show the payload in a dialog box before making the API call
+      // await showDialog(
+      //   context: context,
+      //   builder: (BuildContext context) {
+      //     return AlertDialog(
+      //       title: Text('Check-Out Payload'),
+      //       content: SingleChildScrollView(
+      //         child: Column(
+      //           children: [
+      //             Text(
+      //               body,
+      //               maxLines: 40,
+      //             ),
+      //             SizedBox(
+      //               height: 10,
+      //             ),
+      //             Text(
+      //               " Response Check-Out : ${response.body}",
+      //               maxLines: 40,
+      //             ),
+      //             Text(
+      //               " Response Status Code : ${response.statusCode}",
+      //               maxLines: 40,
+      //             )
+      //           ],
+      //         ),
+      //       ),
+      //       actions: <Widget>[
+      //         TextButton(
+      //           child: Text('OK'),
+      //           onPressed: () {
+      //             Navigator.of(context).pop();
+      //           },
+      //         ),
+      //       ],
+      //     );
+      //   },
+      // );
       print("response body ${response.body}");
       if (response.statusCode == 200) {
         setState(() {
@@ -501,64 +520,62 @@ log("total width: ${Get.width-60}");
               child: Center(
                 child: Stack(
                   children: [
-                               // Fixed top background image
-                      Positioned(
-                        top: 0,
-                        left: 0,
-                        right: 0,
-                        child: Image.asset(
-                          'assets/top.png',
-                          fit: BoxFit.cover,
-                          width: MediaQuery.of(context).size.width,
-                          height: 180.h, // Adjust the height for your design
-                        ),
+                    // Fixed top background image
+                    Positioned(
+                      top: 0,
+                      left: 0,
+                      right: 0,
+                      child: Image.asset(
+                        'assets/top.png',
+                        fit: BoxFit.cover,
+                        width: MediaQuery.of(context).size.width,
+                        height: 180.h, // Adjust the height for your design
                       ),
-                      // Fixed bottom background image
-                      Positioned(
-                        bottom: 0,
-                        left: 0,
-                        right: 0,
-                        child: Image.asset(
-                          'assets/bottom.png',
-                          fit: BoxFit.cover,
-                          width: MediaQuery.of(context).size.width,
-                          // height: 200, // Adjust the height for your design
-                        ),
+                    ),
+                    // Fixed bottom background image
+                    Positioned(
+                      bottom: 0,
+                      left: 0,
+                      right: 0,
+                      child: Image.asset(
+                        'assets/bottom.png',
+                        fit: BoxFit.cover,
+                        width: MediaQuery.of(context).size.width,
+                        // height: 200, // Adjust the height for your design
                       ),
-                      DSAiAppBar2(context: context),
-                      SizedBox(height:15.h),
+                    ),
+                    DSAiAppBar2(context: context),
+                    SizedBox(height: 15.h),
                     Center(
                       child: SingleChildScrollView(
                         child: Container(
-                          // color: Colors.red, 
-                          padding:  EdgeInsets.symmetric(horizontal: 20.w),
+                          // color: Colors.red,
+                          padding: EdgeInsets.symmetric(horizontal: 20.w),
                           child: Column(
-                            
                             children: [
-                           
                               // Top icon/logo
                               Container(
-                                margin:  EdgeInsets.only(top: 20, bottom: 5.h),
-                                padding: const EdgeInsets.all(20),
-                                decoration: BoxDecoration(
-                                  color: Colors.transparent,
-                                  borderRadius: BorderRadius.circular(50),
-                                  // boxShadow: const [
-                                  //   BoxShadow(
-                                  //     color: Colors.black12,
-                                  //     blurRadius: 10,
-                                  //     spreadRadius: 2,
-                                  //   ),
-                                  // ],
-                                ),
-                                child: Lottie.asset('assets/lotties/shake-hand.json',
-                                height: 50.h ,
-                                width: 50.h ,
-                                )
-                                // Image.asset("assets/logo.png"),
-                              ),
-                              
-                                              
+                                  margin: EdgeInsets.only(top: 20, bottom: 5.h),
+                                  padding: const EdgeInsets.all(20),
+                                  decoration: BoxDecoration(
+                                    color: Colors.transparent,
+                                    borderRadius: BorderRadius.circular(50),
+                                    // boxShadow: const [
+                                    //   BoxShadow(
+                                    //     color: Colors.black12,
+                                    //     blurRadius: 10,
+                                    //     spreadRadius: 2,
+                                    //   ),
+                                    // ],
+                                  ),
+                                  child: Lottie.asset(
+                                    'assets/lotties/shake-hand.json',
+                                    height: 50.h,
+                                    width: 50.h,
+                                  )
+                                  // Image.asset("assets/logo.png"),
+                                  ),
+
                               // User Info Section
                               Container(
                                 // width: screenWidth < 600 ? screenWidth * 1 : 380,
@@ -578,21 +595,22 @@ log("total width: ${Get.width-60}");
                                   children: [
                                     Text(
                                       userName.toUpperCase(),
-                                      style:  TextStyle(
+                                      style: TextStyle(
                                         fontSize: 13.sp,
                                         fontWeight: FontWeight.bold,
                                         color: Color(0xFF00B884),
                                       ),
                                     ),
-                                     SizedBox(height: 10.h),
-                                              
+                                    SizedBox(height: 10.h),
+
                                     // Profile Card
                                     Container(
                                       padding: const EdgeInsets.all(10),
                                       decoration: BoxDecoration(
                                         color: Colors.white,
                                         borderRadius: BorderRadius.circular(15),
-                                        border: Border.all(color: Colors.grey.shade300),
+                                        border: Border.all(
+                                            color: Colors.grey.shade300),
                                         boxShadow: const [
                                           BoxShadow(
                                             color: Colors.black12,
@@ -633,13 +651,12 @@ log("total width: ${Get.width-60}");
                                         ],
                                       ),
                                     ),
-                                     SizedBox(height: 10.h),
+                                    SizedBox(height: 10.h),
                                     Stack(
                                       children: [
                                         Image.asset(
                                           'assets/clock.png',
-                                          height: 120, 
-                                              
+                                          height: 120,
                                         ),
                                         Positioned(
                                           top: 25,
@@ -653,97 +670,107 @@ log("total width: ${Get.width-60}");
                                         ),
                                       ],
                                     ),
-                                   
-                                              
-                                   SizedBox(height: 10.h),
-                                              
+
+                                    SizedBox(height: 10.h),
+
                                     // Display countdown timer
                                     Visibility(
                                       visible: _isCheckedIn,
                                       child: Text(
                                         _formatElapsedTime(),
-                                        style:  TextStyle(
+                                        style: TextStyle(
                                           fontSize: 30.sp,
                                           fontWeight: FontWeight.bold,
                                           color: Color(0xFF00B884),
                                         ),
                                       ),
                                     ),
-                                     SizedBox(height: 15.h),
-                                              
+                                    SizedBox(height: 15.h),
+
                                     // Custom Sliding Check-In / Check-Out Button
                                     LayoutBuilder(
                                       builder: (context, constraints) {
-                                     
-                                          mainWidth.value=constraints.maxWidth;
-                                      
+                                        mainWidth.value = constraints.maxWidth;
+
                                         // double parentWidth = constraints.maxWidth;
-                                      return Container(
-                                        // color: Colors.green,
-                                        child: Stack(
-                                          children: [
-                                            // SizedBox(height: 200,),
-                                            // Text("test ${constraints.maxWidth}"),
-                                            Container(
-                                              height: 60,
-                                              width: double.infinity,
-                                              decoration: BoxDecoration(
-                                                color: const Color(0xFF00B884)
-                                                    .withOpacity(0.2),
-                                                borderRadius: BorderRadius.circular(30),
+                                        return Container(
+                                          // color: Colors.green,
+                                          child: Stack(
+                                            children: [
+                                              // SizedBox(height: 200,),
+                                              // Text("test ${constraints.maxWidth}"),
+                                              Container(
+                                                height: 60,
+                                                width: double.infinity,
+                                                decoration: BoxDecoration(
+                                                  color: const Color(0xFF00B884)
+                                                      .withOpacity(0.2),
+                                                  borderRadius:
+                                                      BorderRadius.circular(30),
+                                                ),
+                                                child: Row(
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment.center,
+                                                  children: [
+                                                    Text(
+                                                      _isCheckedIn &&
+                                                              !_isCheckedOut
+                                                          ? ' Swipe to Check Out'
+                                                          : ' Swipe to Check In',
+                                                      style: TextStyle(
+                                                          color: Colors.black,
+                                                          fontSize: 15,
+                                                          fontWeight:
+                                                              FontWeight.bold),
+                                                    ),
+                                                  ],
+                                                ),
                                               ),
-                                              child: Row(
-                                                mainAxisAlignment: MainAxisAlignment.center,
-                                                children: [
-                                                  Text(
-                                                    _isCheckedIn && !_isCheckedOut
-                                                        ? ' Swipe to Check Out'
-                                                        : ' Swipe to Check In',
-                                                    style: TextStyle(
-                                                        color: Colors.black,
-                                                        fontSize: 15,
-                                                        fontWeight: FontWeight.bold),
-                                                  ),
-                                                ],
-                                              ),
-                                            ),
-                                            // Text("${mainWidth.value}"),
-                                            Positioned(
-                                              left: _sliderPosition,
-                                              child: GestureDetector(
-                                                onHorizontalDragUpdate: (details) =>
-                                                    _onDragUpdate(details,mainWidth.value),
-                                                onHorizontalDragEnd: (details) =>
-                                                    _onDragEnd(mainWidth.value),
-                                                child: AnimatedContainer(
-                                                  duration:
-                                                      const Duration(milliseconds: 100),
-                                                  height: 60,
-                                                  width: 60,
-                                                  decoration: BoxDecoration(
-                                                    color: const Color(0xFF00B884),
-                                                    borderRadius: BorderRadius.circular(50),
-                                                    boxShadow: [
-                                                      BoxShadow(
-                                                        color: Colors.black26,
-                                                        blurRadius: 5,
-                                                        spreadRadius: 1,
-                                                      ),
-                                                    ],
-                                                  ),
-                                                  child: Icon(
-                                                    _isCheckedIn && !_isCheckedOut
-                                                        ? Icons.chevron_left
-                                                        : Icons.chevron_right,
-                                                    color: Colors.white,
-                                                    size: 30,
+                                              // Text("${mainWidth.value}"),
+                                              Positioned(
+                                                left: _sliderPosition,
+                                                child: GestureDetector(
+                                                  onHorizontalDragUpdate:
+                                                      (details) =>
+                                                          _onDragUpdate(details,
+                                                              mainWidth.value),
+                                                  onHorizontalDragEnd:
+                                                      (details) => _onDragEnd(
+                                                          mainWidth.value),
+                                                  child: AnimatedContainer(
+                                                    duration: const Duration(
+                                                        milliseconds: 100),
+                                                    height: 60,
+                                                    width: 60,
+                                                    decoration: BoxDecoration(
+                                                      color: const Color(
+                                                          0xFF00B884),
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              50),
+                                                      boxShadow: [
+                                                        BoxShadow(
+                                                          color: Colors.black26,
+                                                          blurRadius: 5,
+                                                          spreadRadius: 1,
+                                                        ),
+                                                      ],
+                                                    ),
+                                                    child: Icon(
+                                                      _isCheckedIn &&
+                                                              !_isCheckedOut
+                                                          ? Icons.chevron_left
+                                                          : Icons.chevron_right,
+                                                      color: Colors.white,
+                                                      size: 30,
+                                                    ),
                                                   ),
                                                 ),
                                               ),
-                                            ),
-                                          ],
-                                        ),
-                                      );},
+                                            ],
+                                          ),
+                                        );
+                                      },
                                     ),
                                   ],
                                 ),
@@ -865,7 +892,6 @@ class _BreakTimeDialogState extends State<BreakTimeDialog> {
                   spacing: 10,
                   runSpacing: 10,
                   children: [
-                  
                     _buildTimeButton(0),
                     _buildTimeButton(15),
                     _buildTimeButton(30),

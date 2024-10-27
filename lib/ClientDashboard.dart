@@ -549,7 +549,7 @@ Future<void> _saveQRCodeLocally(Uint8List qrImageBytes, String uniqueAccessKey) 
     Map<String, List<dynamic>> groupedData = {};
 
     for (var view in _employeeViews) {
-      String date = formatDate(view['date']);
+      String date = formatDate(view['checkedIn']);
 
       if (!groupedData.containsKey(date)) {
         groupedData[date] = [];
@@ -607,7 +607,7 @@ Future<void> _saveQRCodeLocally(Uint8List qrImageBytes, String uniqueAccessKey) 
               ),
             ),
           ),
-          DataCell(Text(formatDate(view['date']))),
+          DataCell(Text(formatDate(view['checkedIn']))), //date 
           DataCell(Text(formatTime(view['checkedIn']))),
           DataCell(Text(formatTime(view['checkedOut']))),
           DataCell(Text(view['breakTime'] ?? 'N/A')),
